@@ -1,0 +1,7 @@
+<a href="arandomlink.html">asdf</a>
+<a href="shouldthiswork?.html"></a>
+<b href="nah">asdaf</b>
+<html>
+<asdf>
+<a>nope.</a>
+<a href="HALLO">hello</a>

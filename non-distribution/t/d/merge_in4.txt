@@ -1,0 +1,3 @@
+stupid | 3 | link
+awesome | 1 | hi
+create | 500 | create

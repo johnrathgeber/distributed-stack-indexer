@@ -1,0 +1,6 @@
+awesome | movie 10000 hi 1
+awesome broth | asdf 2
+create | create 500
+created | haha 2
+greatly | linky 3
+stupid | different_link 5 link 3

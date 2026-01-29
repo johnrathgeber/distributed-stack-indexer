@@ -25,12 +25,24 @@ For example, `execSync(`echo "${input}" | ./c/process.sh`, {encoding: 'utf-8'});
 */
 
 
-const fs = require('fs');
+// const fs = require('fs'); ???
 const {execSync} = require('child_process');
-const path = require('path');
+// const path = require('path'); ???
 
 
 function query(indexFile, args) {
+  const s = args.join(' ');
+  try {
+    const data = execSync(`echo "${s}" | ./c/process.sh | ./c/stem.js`, {encoding: 'utf-8'});
+    const data2 = data.trim().split('\n').join(' ');
+    if (!data2) {
+      console.error('Query empty after processing.');
+      return;
+    }
+    execSync(`grep -w "${data2}" ${indexFile}`, {stdio: 'inherit'});
+  } catch (e) {
+    console.error('An error occurred:', e.message);
+  }
 }
 
 const args = process.argv.slice(2); // Get command-line arguments

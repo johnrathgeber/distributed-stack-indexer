@@ -1,0 +1,5 @@
+stupid | 5 | different_link
+greatly | 3 | linky
+created | 2 | haha
+awesome broth | 2 | asdf
+awesome | 10000 | movie

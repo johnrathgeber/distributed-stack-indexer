@@ -1,0 +1,3 @@
+broth | 2 | linkylink
+check | 3 | https://cs.brown.edu/courses/csci1380/sandbox/1
+check level | 500 | lincoln

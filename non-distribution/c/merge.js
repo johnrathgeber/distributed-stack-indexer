@@ -50,17 +50,27 @@ const rl = readline.createInterface({
 // 1. Read the incoming local index data from standard input (stdin) line by line.
 let localIndex = '';
 rl.on('line', (line) => {
+  localIndex += line + '\n';
 });
 
 rl.on('close', () => {
   // 2. Read the global index name/location, using process.argv
   // and call printMerged as a callback
+  if (process.argv.length < 3) {
+    console.error('Error: No global index file provided.');
+    process.exit(1);
+  }
+  fs.readFile(process.argv[2], 'utf8', printMerged);
 });
 
 const printMerged = (err, data) => {
   if (err) {
-    console.error('Error reading file:', err);
-    return;
+    if (err.code === 'ENOENT') {
+      data = '';
+    } else {
+      console.error('Error reading file:', err);
+      return;
+    }
   }
 
   // Split the data into an array of lines
@@ -76,12 +86,42 @@ const printMerged = (err, data) => {
   // 3. For each line in `localIndexLines`, parse them and add them to the `local` object
   // where keys are terms and values store a url->freq map (one entry per url).
   for (const line of localIndexLines) {
+    const words = line.split(' | ');
+    if (words.length < 3) {
+      console.error('Invalid local index.');
+      process.exit(1);
+    }
+    if (isNaN(words[1])) {
+      console.error('Invalid local index.');
+      process.exit(1);
+    }
+    local[words[0]] = {[words[2]]: parseInt(words[1])};
   }
 
   // 4. For each line in `globalIndexLines`, parse them and add them to the `global` object
   // where keys are terms and values are url->freq maps (one entry per url).
   // Use the .trim() method to remove leading and trailing whitespace from a string.
   for (const line of globalIndexLines) {
+    const words = line.trim().split(' | ');
+    if (words.length < 2) {
+      continue;
+      // console.error('Invalid global index.', {globalIndexLines});
+      // process.exit(1);
+    }
+    const term = words[0];
+    const urlFreq = words[1].split(' ');
+    const grouped = {};
+    if (urlFreq.length % 2 != 0) {
+      console.error('Invalid global index.');
+      process.exit(1);
+    }
+    for (let i = 0; i < urlFreq.length; i += 2) {
+      if (isNaN(urlFreq[i + 1])) {
+        console.error('Invalid global index.');
+        process.exit(1);
+      }
+      grouped[urlFreq[i]] = parseInt(urlFreq[i + 1]);
+    }
     global[term] = grouped; // Map<url, freq>
   }
 
@@ -94,4 +134,27 @@ const printMerged = (err, data) => {
   // 6. Print the merged index to the console in the same format as the global index file:
   //    - Each line contains a term, followed by a pipe (`|`), followed by space-separated pairs of `url` and `freq`.
   //    - Terms should be printed in alphabetical order.
+  for (const [term, mp] of Object.entries(local)) {
+    if (term in global) {
+      const url = Object.keys(mp)[0];
+      if (url in global[term]) {
+        global[term][url] += mp[url];
+      } else {
+        global[term][url] = mp[url];
+      }
+    } else {
+      global[term] = mp;
+    }
+  }
+  const terms = Object.keys(global).sort();
+  for (const term of terms) {
+    const urlMap = global[term];
+    const entries = [];
+    for (const [url, freq] of Object.entries(urlMap)) {
+      entries.push({url: url, freq: freq});
+    }
+    entries.sort(compare);
+    const s = entries.map((e) => `${e.url} ${e.freq}`).join(' ');
+    console.log(`${term} | ${s}`);
+  }
 };
