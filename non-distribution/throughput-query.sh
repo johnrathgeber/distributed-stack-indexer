@@ -11,7 +11,7 @@ cat "$T_FOLDER"/d/d7.txt > d/global-index.txt
 
 START_TIME=$(date +%s.%N)
 
-for i in $(seq 1 $COUNT); do
+for _ in $(seq 1 $COUNT); do
   ./query.js "$term" >/dev/null
 done
 

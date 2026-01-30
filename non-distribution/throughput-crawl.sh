@@ -3,6 +3,11 @@
 COUNT=0
 MAX_COUNT=50
 
+URLS_SNAPSHOT=$(mktemp)
+URLS_SNAPSHOT2=$(mktemp)
+cp d/urls.txt "$URLS_SNAPSHOT"
+cp d/urls.txt "$URLS_SNAPSHOT2"
+
 START_TIME=$(date +%s.%N)
 
 while read -r url; do
@@ -16,11 +21,14 @@ while read -r url; do
 
   COUNT=$((COUNT + 1))
 
-  if  [[ "$(cat d/visited.txt | wc -l)" -ge "$(cat d/urls.txt | wc -l)" ]]; then
+  if  [[ "$(cat d/visited.txt | wc -l)" -ge "$(cat "$URLS_SNAPSHOT2" | wc -l)" ]]; then
       break;
   fi
 
-done < d/urls.txt
+done < "$URLS_SNAPSHOT"
+
+rm -f "$URLS_SNAPSHOT"
+rm -f "$URLS_SNAPSHOT2"
 
 END_TIME=$(date +%s.%N)
 ELAPSED=$(echo "$END_TIME - $START_TIME" | bc)
