@@ -25,8 +25,8 @@ while read -r url; do
 done < d/urls.txt
 
 END_TIME=$(date +%s.%N)
-ELAPSED=$(echo "$END_TIME - $START_TIME" | bc) # NOTE: TEST CRAWL DURATION FIRST, THEN REPLACE 42
-ELAPSED_WITHOUT=$(echo "$END_TIME - $START_TIME - 42" | bc) # 42 is time to crawl 50 urls -- value to be replaced
+ELAPSED=$(echo "$END_TIME - $START_TIME" | bc) # NOTE: TEST CRAWL DURATION FIRST, THEN REPLACE 83
+ELAPSED_WITHOUT=$(echo "$END_TIME - $START_TIME - 83" | bc) # 83 is time to crawl 50 urls -- value to be replaced
 THROUGHPUT=$(echo "scale=2; $COUNT / $ELAPSED_WITHOUT" | bc)
 
 echo "Pages Crawled/Indexed: $COUNT"
