@@ -125,4 +125,45 @@ distribution.node.start(() => {
 
 # Results and Reflections
 
-> ...
+# M0: Setup & Centralized Computing
+
+> Add your contact information below and in `package.json`.
+
+* name: `John Rathgeber`
+
+* email: `john_rathgeber@brown.edu`
+
+* cslogin: `jrathgeb`
+
+
+## Summary
+
+> Summarize your implementation, including the most challenging aspects; remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete M0 (`hours`), the total number of JavaScript lines you added, including tests (`jsloc`), the total number of shell lines you added, including for deployment and testing (`sloc`).
+
+
+My implementation consists of `6` components addressing T1--8. The most challenging aspect was `process.sh` because `I had to learn how to write .sh files, and had to research the functionality of each suggested command`.
+
+
+## Correctness & Performance Characterization
+
+
+> Describe how you characterized the correctness and performance of your implementation.
+
+
+To characterize correctness, we developed `8 tests` that test the following cases: special 
+characters are handled, one term with multiple links are handled, filtering out stopwords is handled, spaces between words in a term are not considered one term, etc..
+
+
+*Performance*: The throughput of various subsystems is described in the `"throughput"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
+
+
+## Wild Guess
+
+> How many lines of code do you think it will take to build the fully distributed, scalable version of your search engine? Add that number to the `"dloc"` portion of package.json, and justify your answer below.
+
+I think it will take around 5000 lines of code. My reasoning:
+- This milestone took around 500 lines of code
+- There are 6 total milestones
+- The following milestones will likely involve more lines of code than this one
+So on average, maybe I can say that the total amount of lines will be 10x the amount of lines
+of code in this milestone.
