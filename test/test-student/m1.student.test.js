@@ -131,3 +131,61 @@ test('extra 2', () => {
   expect(typeof dbo).toEqual("bigint");
   expect(dbo).toEqual(b);
 });
+
+test('latency', () => {
+  const baseTypes = [
+    true,
+    null,
+    3333,
+    "ssss",
+    undefined
+  ];
+  const f1 = function(a, b) {return a;};
+  const f2 = function() {return;};
+  const f3 = function(a, b, c, d) {return (a * b) + (c % d);};
+  const f4 = function(a) {return `asdf${a}`;};
+  const f5 = function(a) {return typeof a == "string" ? "s" : typeof a == "number" ? "n" : typeof a == "object" ? "o" : typeof a == "boolean" ? "b" : "idk"};
+  const functions = [
+    f1,
+    f2,
+    f3,
+    f4,
+    f5
+  ];
+  const recursiveStructures = [
+    new Date("2023-12-25T10:00:00"),
+    new Error("Something went wrong!"),
+    [3],
+    [new Error("asdf"), new Date("2023-12-25T10:00:00")],
+    {a: "hi"},
+    {a: [3], b: new Date("2023-12-25T10:00:00"), c: new Error("Something went wrong!"), e: true, g: null, h: 3, i: {a: "hi"}, j: "s", k: undefined},
+    {a: {b: {c: {d: {e: {f: {g: {h: {i: {j: {k: {l: {m: {}}}}}}}}}}}}}},
+    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [[1], [2], [3], [4], [5], [6], [7], [8], [9]]
+  ];
+  const testCases = [
+    baseTypes,
+    functions,
+    recursiveStructures
+  ];
+  const iterations = 50;
+  let latencies = [];
+  for (const arr of testCases) {
+    let totalTotalTime = 0;
+    for (const test of arr) {
+      let totalTime = 0;
+      for (let i = 0; i < iterations; i++) {
+        const s = performance.now();
+        distribution.util.deserialize(distribution.util.serialize(test));
+        totalTime += performance.now() - s;
+      }
+      let latency = totalTime / iterations;
+      totalTotalTime += latency;
+    }
+    latencies.push(totalTotalTime / arr.length);
+  }
+  for (let i = 0; i < 3; i++) {
+    const s = i == 0 ? "base types" : i == 1 ? "functions" : "recursive structures";
+    console.log(`Average latency for ${s}: ${latencies[i]}`);
+  }
+});

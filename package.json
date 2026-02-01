@@ -28,22 +28,18 @@
   "report": [
     {
       "milestone": "M1",
-      "hours": 999,
-      "loc": 999,
+      "hours": 8.5,
+      "loc": 400,
       "dev": {
-        "cpu-no": 999,
-        "mem-gb": 999,
-        "ssd-gb": 999
-      },
-      "throughput": {
-        "dev": [],
-        "aws": []
+        "cpu-no": 12,
+        "mem-gb": 15.7,
+        "ssd-gb": 477
       },
       "latency": {
-        "dev": [],
-        "aws": []
+        "dev": {"base types": 0.0028, "functions": 0.0089, "recursive structures": 0.0473},
+        "aws": {"base types": 999, "functions": 999, "recursive structures": 999}
       },
-      "dloc": -99
+      "dloc": 4500
     },
     {
       "milestone": "M2",

@@ -176,7 +176,7 @@ of code in this milestone.
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M1 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `<number>` software components, totaling `<number>` lines of code. Key challenges included `<1, 2, 3 + how you solved them>`.
+My implementation comprises `3` software components, totaling `400` lines of code (including tests and scenarios). Key challenges included `ensuring each recursive layer is only stringified once, all types are correctly handled by both the serializer and deserializer, and figuring out how to destructure and label recursive types. For the first challenge, I solved this by abstracting out the recursive part of my serializer, and only called JSON.stringify() once on the final result. For the second challenge, I had to research each type online and figure out what to store for each type (e.g. Errors have name, message, and cause). For the final challenge, I extensively used the reference implementation to gain inspiration on how they serialized recursive types, and drew my own implementation from that`.
 
 
 ## Correctness & Performance Characterization
@@ -185,7 +185,7 @@ My implementation comprises `<number>` software components, totaling `<number>` 
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness*: I wrote `<number>` tests; these tests take `<time>` to execute. This includes objects with `<certain kinds of features>`.
+*Correctness*: I wrote `8` tests; these tests take `0.648s` to execute. This includes objects with `nested structures, abstract types such as functions, and additional metadata required to reconstruct (e.g. Errors)`.
 
 
 *Performance*: The latency of various subsystems is described in the `"latency"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
