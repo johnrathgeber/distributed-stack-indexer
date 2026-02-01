@@ -52,7 +52,7 @@ test('(1 pts) student test', () => {
 test('(1 pts) student test', () => {
   const object = {a: [3], b: new Date("2023-12-25T10:00:00"), c: new Error("Something went wrong!"), e: true, g: null, h: 3, i: {a: "hi"}, j: "s", k: undefined};
   const so = distribution.util.serialize(object);
-  expect(so).toEqual('{"type":"object","value":{"a":{"type":"array","value":{"0":{"type":"number","value":"3"}}},"b":{"type":"date","value":"2023-12-25T10:00:00.000Z"},"c":{"type":"error","value":{"type":"object","value":{"name":{"type":"string","value":"Error"},"message":{"type":"string","value":"Something went wrong!"},"cause":{"type":"undefined","value":""}}}},"d":{"type":"object","value":{}},"e":{"type":"boolean","value":"true"},"g":{"type":"null","value":""},"h":{"type":"number","value":"3"},"i":{"type":"object","value":{"a":{"type":"string","value":"hi"}}},"j":{"type":"string","value":"s"},"k":{"type":"undefined","value":""}}}');
+  expect(so).toEqual('{"type":"object","value":{"a":{"type":"array","value":{"0":{"type":"number","value":"3"}}},"b":{"type":"date","value":"2023-12-25T10:00:00.000Z"},"c":{"type":"error","value":{"type":"object","value":{"name":{"type":"string","value":"Error"},"message":{"type":"string","value":"Something went wrong!"},"cause":{"type":"undefined","value":""}}}},"e":{"type":"boolean","value":"true"},"g":{"type":"null","value":""},"h":{"type":"number","value":"3"},"i":{"type":"object","value":{"a":{"type":"string","value":"hi"}}},"j":{"type":"string","value":"s"},"k":{"type":"undefined","value":""}}}');
   expect(distribution.util.deserialize(so)).toEqual(object);
 });
 
