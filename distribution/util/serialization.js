@@ -5,6 +5,9 @@ function serializeHelp(object) {
   {
     return { type: typeof object, value: String(object) };
   }
+  else if (typeof object == "bigint") {
+    return { type: "bigint", value: object.toString() };
+  }
   else if (object === null) {
     return { type: "null", value: "" };
   }
@@ -15,14 +18,6 @@ function serializeHelp(object) {
     return { type: "function", value: object.toString() };
   }
   else if (typeof object == "object") {
-    // if (!object.constructor) {
-    //   let res = {};
-    //   for (key in object) {
-    //     res[key] = serializeHelp(object[key])
-    //   }
-    //   return { type: "object", value: res };
-    // }
-    // const constructor = object.constructor.name;
     const constructor = object.constructor ? object.constructor.name : "Object";
     if (constructor == "Object") {
       let res = {};
@@ -95,6 +90,9 @@ function deserialize(string) {
       throw new Error(`Types don't match: ${string}.`);
     }
   }
+  else if (t == "bigint") {
+    return BigInt(v);
+  }
   else if (t == "null") {
     return null;
   }
@@ -128,6 +126,9 @@ function deserialize(string) {
       err.cause = metadata.cause;
     }
     return err;
+  }
+  else {
+    throw new Error(`Unknown type: ${object}.`);
   }
 }
 

@@ -121,4 +121,13 @@ test('extra 1', () => {
   const dfo = distribution.util.deserialize(fo);
   expect(typeof dfo).toEqual("function");
   expect(dfo(3, 4)).toEqual(3);
-})
+});
+
+test('extra 2', () => {
+  const b = 123123123123123123n;
+  const bo = distribution.util.serialize(b);
+  expect(bo).toEqual(`{"type":"bigint","value":"123123123123123123"}`);
+  const dbo = distribution.util.deserialize(bo);
+  expect(typeof dbo).toEqual("bigint");
+  expect(dbo).toEqual(b);
+});
