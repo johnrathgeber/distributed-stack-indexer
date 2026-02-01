@@ -37,7 +37,7 @@
       },
       "latency": {
         "dev": {"base types": 0.0028, "functions": 0.0089, "recursive structures": 0.0473},
-        "aws": {"base types": 999, "functions": 999, "recursive structures": 999}
+        "aws": {"base types": 0.0026, "functions": 0.0045, "recursive structures": 0.0809}
       },
       "dloc": 4500
     },
