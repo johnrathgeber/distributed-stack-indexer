@@ -13,6 +13,7 @@ declare global {
       start: (server: any) => void
       config: Node
       server: Server<typeof IncomingMessage, typeof ServerResponse>
+      count: int
     },
     [gid: string]: any,
   }

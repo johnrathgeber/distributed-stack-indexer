@@ -3,6 +3,11 @@
  * @typedef {string} ServiceName
  */
 
+const distribution = require("../../distribution");
+
+let mp = {
+};
+
 
 /**
  * @param {ServiceName | {service: ServiceName, gid?: string}} configuration
@@ -10,7 +15,22 @@
  * @returns {void}
  */
 function get(configuration, callback) {
-  return callback(new Error('routes.get not implemented'));
+  if (typeof configuration == "string") {
+    if (configuration in mp) {
+      callback(null, mp[configuration]);
+    }
+    else {
+      callback(new Error("No corresponding service found."));
+    }
+  }
+  else {
+    if (configuration.service in mp) {
+      callback(null, mp[configuration.service]);
+    }
+    else {
+      callback(new Error("No corresponding service found."));
+    }
+  }
 }
 
 /**
@@ -20,7 +40,8 @@ function get(configuration, callback) {
  * @returns {void}
  */
 function put(service, configuration, callback) {
-  return callback(new Error('routes.put not implemented'));
+  mp[configuration] = service;
+  callback(null, null);
 }
 
 /**
@@ -28,7 +49,14 @@ function put(service, configuration, callback) {
  * @param {Callback} callback
  */
 function rem(configuration, callback) {
-  return callback(new Error('routes.rem not implemented'));
+  if (configuration in mp) {
+    const serv = mp[configuration];
+    delete mp[configuration];
+    callback(null, serv);
+  }
+  else {
+    callback(new Error("Service not found."));
+  }
 }
 
 module.exports = {get, put, rem};

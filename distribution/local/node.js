@@ -8,6 +8,9 @@ const url = require('node:url');
 const log = require('../util/log.js');
 
 const yargs = require('yargs/yargs');
+const routes = require("../local/routes.js");
+const util = require("../util/util.js");
+const { runInNewContext, runInThisContext } = require("node:vm");
 
 /**
  * @returns {Node}
@@ -84,7 +87,17 @@ function start(callback) {
     /* Your server will be listening for PUT requests. */
 
     // Write some code...
-
+    const reqURL = req.url;
+    if (!reqURL) {
+      res.writeHead(400, {'Content-Type': 'application/json'});
+      res.end(distribution.util.serialize(new Error(`Expected URL, got nothing.`)));
+      return;
+    }
+    if (req.method != "PUT") {
+      res.writeHead(405, {'Content-Type': 'application/json'});
+      res.end(distribution.util.serialize(new Error(`Expected PUT, got ${req.method}.`)));
+      return;
+    }
 
     /*
       The path of the http request will determine the service to be used.
@@ -92,6 +105,18 @@ function start(callback) {
     */
 
     // Write some code...
+    // const nodeAddr = reqURL.host.split(":");
+    // const ip = nodeAddr[0];
+    // const port = nodeAddr[1];
+    const path = reqURL.split("/");
+    if (path.length < 4) {
+      res.writeHead(405, {'Content-Type': 'application/json'});
+      res.end(distribution.util.serialize(new Error(`Path not long enough.`)));
+      return;
+    }
+    const gid = path[1];
+    const service = path[2];
+    const method = path[3];
 
 
     /*
@@ -114,6 +139,7 @@ function start(callback) {
     const body = [];
 
     req.on('data', (chunk) => {
+      body.push(chunk);
     });
 
     req.on('end', () => {
@@ -126,9 +152,43 @@ function start(callback) {
       */
 
       // Write some code...
+      let newBody;
+      try {
+        newBody = distribution.util.deserialize(body.join());
+      }
+      catch (e) {
+        res.writeHead(400, {'Content-Type': 'application/json'});
+        res.end(distribution.util.serialize([e, null]));
+        return;
+      }
+      routes.get(service, (e, v) => {
+        if (e) {
+          res.writeHead(400, {'Content-Type': 'application/json'});
+          res.end(distribution.util.serialize([e, null]));
+          return;
+        }
+        if (!(method in v)) {
+          res.writeHead(400, {'Content-Type': 'application/json'});
+          res.end(distribution.util.serialize([new Error("Method not found."), null]));
+          return;
+        }
+        v[method](...newBody, (e2, v2) => {
+          if (e2) {
+            res.writeHead(400, {'Content-Type': 'application/json'});
+            res.end(distribution.util.serialize([e2, null]));
+            return;
+          }
+          if (!globalThis.distribution.node.count) {
+            globalThis.distribution.node.count = 0;
+          }
+          globalThis.distribution.node.count++;
+          const serialized = util.serialize([null, v2]);
+          res.writeHead(200, {'Content-Type': 'application/json'});
+          res.end(serialized);
+        })});
+      });
 
     });
-  });
 
   /*
     Your server will be listening on the port and ip specified in the config
