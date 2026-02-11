@@ -246,6 +246,7 @@ test('comm latency', (done) => {
   }
 }, 100000);
 
+// UNCOMMENT THESE TESTS AND COMMENT THE ABOVE TESTS TO TEST REFERENCE RPC THROUGHPUT/LATENCY
 // test('rpc throughput', (done) => {
 //   const iterations = 1000;
 //   let n = 0;

@@ -43,8 +43,8 @@
     },
     {
       "milestone": "M2",
-      "hours": 8,
-      "loc": 380,
+      "hours": 10,
+      "loc": 490,
       "dev": {
         "cpu-no": 12,
         "mem-gb": 15.7,
@@ -52,11 +52,11 @@
       },
       "throughput": {
         "dev": {"comm": 765.134, "rpc": 598.088},
-        "aws": {"comm": 999, "rpc": 279.066}
+        "aws": {"comm": 675.802, "rpc": 279.066}
       },
       "latency": {
         "dev": {"comm": 0.3269, "rpc": 1.42},
-        "aws": {"comm": 999, "rpc": 1.758}
+        "aws": {"comm": 0.533, "rpc": 1.758}
       },
       "dloc": 4300
     },

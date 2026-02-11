@@ -197,7 +197,7 @@ My implementation comprises `3` software components, totaling `400` lines of cod
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M2 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `3` software components, totaling `380` lines of code. Key challenges included `learning how the http package works, learning exactly what I needed to return for each function, and figuring out how to do counts. For the first problem (http), I had to do a lot of research online about the http server class, and how it is used to send/receive messages. For the second problem (specification), I solved this by analyzing the tests to see what was expected of me for each function. For the third problem (counts), I figured out that we can track counts by having a stored parameter in the distribution.node object, and from there, it was easy to increment as necessary`.
+My implementation comprises `3` software components, totaling `490` lines of code. Key challenges included `learning how the http package works, learning exactly what I needed to return for each function, and figuring out how to do counts. For the first problem (http), I had to do a lot of research online about the http server class, and how it is used to send/receive messages. For the second problem (specification), I solved this by analyzing the tests to see what was expected of me for each function. For the third problem (counts), I figured out that we can track counts by having a stored parameter in the distribution.node object, and from there, it was easy to increment as necessary`.
 
 
 ## Correctness & Performance Characterization
@@ -205,7 +205,7 @@ My implementation comprises `3` software components, totaling `380` lines of cod
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness*: I wrote `5` tests; these tests take `3s` to execute.
+*Correctness*: I wrote `9` tests (including performance tests); these tests take `4s` on average to execute.
 
 
 *Performance*: I characterized the performance of comm and RPC by sending 1000 service requests in a tight loop. Average throughput and latency is recorded in `package.json`.
