@@ -197,7 +197,7 @@ My implementation comprises `3` software components, totaling `400` lines of cod
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M2 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `<number>` software components, totaling `<number>` lines of code. Key challenges included `<1, 2, 3 + how you solved them>`.
+My implementation comprises `3` software components, totaling `380` lines of code. Key challenges included `learning how the http package works, learning exactly what I needed to return for each function, and figuring out how to do counts. For the first problem (http), I had to do a lot of research online about the http server class, and how it is used to send/receive messages. For the second problem (specification), I solved this by analyzing the tests to see what was expected of me for each function. For the third problem (counts), I figured out that we can track counts by having a stored parameter in the distribution.node object, and from there, it was easy to increment as necessary`.
 
 
 ## Correctness & Performance Characterization
@@ -205,7 +205,7 @@ My implementation comprises `<number>` software components, totaling `<number>` 
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness*: I wrote `<number>` tests; these tests take `<time>` to execute.
+*Correctness*: I wrote `5` tests; these tests take `3s` to execute.
 
 
 *Performance*: I characterized the performance of comm and RPC by sending 1000 service requests in a tight loop. Average throughput and latency is recorded in `package.json`.
@@ -214,4 +214,6 @@ My implementation comprises `<number>` software components, totaling `<number>` 
 ## Key Feature
 
 > How would you explain the implementation of `createRPC` to someone who has no background in computer science — i.e., with the minimum jargon possible?
+
+Let's think of nodes as people. `createRPC` allows one person to send instructions to another person, so that other person can ask the original person something specific to the original person and get the correct information back. Let's say I am a node and you are a node. Let's say we want to create an RPC so that you can ask me for the color of my shirt at any time. To do this, I first have to send you instructions on how to ask me (let's say it's some secret code). This is called the stub. Now, when you say the secret code (use the stub), I will respond back to you what color shirt I am wearing, and you can use that data however you please. 
 
