@@ -54,7 +54,7 @@ function status(config) {
           }
           total--;
           if (total == 0) {
-            callback(nodeToError, nodeToRes ? aggregate : Object.values(nodeToRes));
+            callback(nodeToError, isAggregate ? aggregate : nodeToRes);
           }
         });
       }
