@@ -34,8 +34,8 @@ function status(config) {
         return;
       }
       let nodeToRes = {};
-      let aggregate = 0;
-      const isAggregate = configuration == "heapUsed" || configuration == "heapTotal";
+      // let aggregate = 0;
+      // const isAggregate = configuration == "heapUsed" || configuration == "heapTotal";
       /** @type {Object.<string, Error>} */
       let nodeToError = {};
       for (const nodeSID in v) {
@@ -45,16 +45,18 @@ function status(config) {
             nodeToError[nodeSID] = e;
           }
           else {
-            if (isAggregate) {
-              aggregate += v;
-            }
-            else {
-              nodeToRes[nodeSID] = v;
-            }
+            // if (isAggregate) {
+            //   aggregate += v;
+            // }
+            // else {
+            //   nodeToRes[nodeSID] = v;
+            // }
+            nodeToRes[nodeSID] = v;
           }
           total--;
           if (total == 0) {
-            callback(nodeToError, isAggregate ? aggregate : nodeToRes);
+            // callback(nodeToError, isAggregate ? aggregate : nodeToRes);
+            callback(nodeToError, nodeToRes);
           }
         });
       }
