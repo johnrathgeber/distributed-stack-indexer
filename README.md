@@ -225,7 +225,7 @@ Let's think of nodes as people. `createRPC` allows one person to send instructio
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M3 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `7` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, `.
+My implementation comprises `7` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, figuring out the difference between distributed and local services/methods, and `.
 
 
 ## Correctness & Performance Characterization
