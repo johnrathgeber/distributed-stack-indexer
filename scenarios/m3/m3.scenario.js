@@ -83,7 +83,7 @@ test('(5 pts) (scenario) group relativity', (done) => {
     distribution.groupC.groups.put(config, groupC, (e, v) => {
       // Modify the local 'view' of the group...
       const remote = {node: n1, service: "groups", method: "rem"};
-      distribution.local.comm.send(["groupC", n1], remote, (e, v) => {
+      distribution.local.comm.send(["groupC", id.getSID(n1)], remote, (e, v) => {
         distribution.groupC.groups.get('groupC', (e, v) => {
           const n1View = v[id.getSID(n1)];
           const n2View = v[id.getSID(n2)];

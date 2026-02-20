@@ -85,9 +85,8 @@ function add(name, node, callback) {
  * @param {Callback} callback
  */
 function rem(name, node, callback) {
-  const nodeSID = typeof node == "string" ? node : id.getSID(node);
-  if (name in mp && nodeSID in mp[name]) {
-    delete mp[name][nodeSID];
+  if (name in mp && node in mp[name]) {
+    delete mp[name][node];
     callback(null, mp[name]);
   }
   else {
