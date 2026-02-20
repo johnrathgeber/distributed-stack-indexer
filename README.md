@@ -225,7 +225,7 @@ Let's think of nodes as people. `createRPC` allows one person to send instructio
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M3 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `7` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, figuring out the difference between distributed and local services/methods, and `.
+My implementation comprises `7` new software components, totaling `580` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, figuring out the difference between distributed and local services/methods, and aggregation. For the first challenge, I had to watch the gearup a second time to fully understand the schema while working through the scenarios. Doing that while writing my own tests at the same time really helped me understand what was really going on. For the second challenge, as soon as I figured out how to implement all.comm.send (which took a lot of trial and error), I was able to figure out how the other distributed services worked, because they were very similar to all.comm.send. For the third challlenge, I initially thought we should aggregate both heapUsed and heapTotal, but after painstakingly debugging the tests on Gradescope (locally my tests passed but not on Gradescope), I realized that we should only aggregate heapTotal, as heapUsed is calculated on a node-by-node basis`.
 
 
 ## Correctness & Performance Characterization
@@ -233,12 +233,14 @@ My implementation comprises `7` new software components, totaling `<number>` add
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness* -- number of tests and time they take.
+*Correctness* -- number of tests and time they take. I wrote 7 tests total, and they take roughly 25 seconds to run (due to the performance tests).
 
 
-*Performance* -- spawn times (all students) and gossip (lab/ec-only).
+*Performance* -- spawn times (all students) and gossip (lab/ec-only). I wrote tests to measure the throughput and latency of spawn(). These tests spawn 100 different nodes each to accurately measure the average latency and throughput.
 
 
 ## Key Feature
 
 > What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
+
+`If we made one node send the message to all nodes right away, we would have a super heavy load of network traffic all at once. By using the gossip protocol, we distribute this load across a (short) period of time, while still allowing the message to reach all other nodes reliably.`

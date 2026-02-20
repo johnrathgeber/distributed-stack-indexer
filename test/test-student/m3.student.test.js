@@ -165,6 +165,56 @@ test('(1 pts) student test', (done) => {
   });
 });
 
+test('spawn latency', (done) => {
+  const iterations = 100;
+  let port = 7002;
+  let totalTime = 0;
+  const stop_remote = {service: 'status', method: 'stop'};
+  function iterate(iters) {
+    if (iters == 0) {
+      console.log(`latency: ${totalTime / (iterations * 1000)} on average`);
+      console.log(`time elapsed (s): ${totalTime / 1000}`);
+      done();
+      return;
+    }
+    const node = {ip: '127.0.0.1', port: port + iters};
+    const startTime = performance.now();
+    distribution.local.status.spawn(node, (e, v) => {
+      const elapsed = performance.now() - startTime;
+      totalTime += elapsed;
+      distribution.local.comm.send([], {...stop_remote, node: node}, (e, v) => {
+        iterate(iters - 1);
+      });
+    });
+  }
+  iterate(iterations);
+}, 100000);
+
+test('spawn throughput', (done) => {
+  const iterations = 100;
+  let port = 7103;
+  let totalTime = 0;
+  const stop_remote = {service: 'status', method: 'stop'};
+  function iterate(iters) {
+    if (iters == 0) {
+      console.log(`throughput: ${(iterations * 1000) / totalTime} spawns/s`);
+      console.log(`time elapsed (s): ${totalTime / 1000}`);
+      done();
+      return;
+    }
+    const node = {ip: '127.0.0.1', port: port + iters};
+    const startTime = performance.now();
+    distribution.local.status.spawn(node, (e, v) => {
+      const elapsed = performance.now() - startTime;
+      totalTime += elapsed;
+      distribution.local.comm.send([], {...stop_remote, node: node}, (e, v) => {
+        iterate(iters - 1);
+      });
+    });
+  }
+  iterate(iterations);
+}, 100000);
+
 beforeAll((done) => {
     distribution.node.start((e) => {
       if (e) return done(e);
