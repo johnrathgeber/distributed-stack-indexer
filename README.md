@@ -233,7 +233,7 @@ My implementation comprises `7` new software components, totaling `580` added li
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness* -- number of tests and time they take. I wrote 7 tests total, and they take roughly 25 seconds to run (due to the performance tests).
+*Correctness* -- number of tests and time they take. I wrote 7 tests total, and they take roughly 25 seconds to run locally (due to the performance tests).
 
 
 *Performance* -- spawn times (all students) and gossip (lab/ec-only). I wrote tests to measure the throughput and latency of spawn(). These tests spawn 100 different nodes each to accurately measure the average latency and throughput.

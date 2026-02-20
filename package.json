@@ -62,7 +62,7 @@
     },
     {
       "milestone": "M3",
-      "hours": 6,
+      "hours": 8,
       "loc": 580,
       "dev": {
         "cpu-no": 12,
@@ -71,11 +71,11 @@
       },
       "throughput": {
         "dev": 8.4569,
-        "aws": 999
+        "aws": 6.7547
       },
       "latency": {
         "dev": 0.1153,
-        "aws": 999
+        "aws": 0.1505
       },
       "dloc": 4300
     },
