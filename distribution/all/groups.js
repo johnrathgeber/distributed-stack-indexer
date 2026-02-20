@@ -25,7 +25,35 @@ function groups(config) {
    * @param {Callback} callback
    */
   function put(config, group, callback) {
-    return callback(new Error('groups.put not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "groups", method: "put"};
+        globalThis.distribution.local.comm.send([config, group], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            nodeToRes[nodeSID] = v;
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -33,7 +61,35 @@ function groups(config) {
    * @param {Callback} callback
    */
   function del(name, callback) {
-    return callback(new Error('groups.del not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "groups", method: "del"};
+        globalThis.distribution.local.comm.send([name], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            nodeToRes[nodeSID] = v;
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -41,7 +97,35 @@ function groups(config) {
    * @param {Callback} callback
    */
   function get(name, callback) {
-    return callback(new Error('groups.get not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "groups", method: "get"};
+        globalThis.distribution.local.comm.send([name], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            nodeToRes[nodeSID] = v;
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -50,7 +134,35 @@ function groups(config) {
    * @param {Callback} callback
    */
   function add(name, node, callback) {
-    return callback(new Error('groups.add not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "groups", method: "add"};
+        globalThis.distribution.local.comm.send([name, node], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            nodeToRes[nodeSID] = v;
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   /**
@@ -59,7 +171,35 @@ function groups(config) {
    * @param {Callback} callback
    */
   function rem(name, node, callback) {
-    return callback(new Error('groups.rem not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "groups", method: "rem"};
+        globalThis.distribution.local.comm.send([name, node], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            nodeToRes[nodeSID] = v;
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   return {

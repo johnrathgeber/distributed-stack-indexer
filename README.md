@@ -217,3 +217,28 @@ My implementation comprises `3` software components, totaling `490` lines of cod
 
 Let's think of nodes as people. `createRPC` allows one person to send instructions to another person, so that other person can ask the original person something specific to the original person and get the correct information back. Let's say I am a node and you are a node. Let's say we want to create an RPC so that you can ask me for the color of my shirt at any time. To do this, I first have to send you instructions on how to ask me (let's say it's some secret code). This is called the stub. Now, when you say the secret code (use the stub), I will respond back to you what color shirt I am wearing, and you can use that data however you please. 
 
+# M3: Node Groups & Gossip Protocols
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M3 (`hours`) and the lines of code per task.
+
+
+My implementation comprises `7` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, `.
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness* -- number of tests and time they take.
+
+
+*Performance* -- spawn times (all students) and gossip (lab/ec-only).
+
+
+## Key Feature
+
+> What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?

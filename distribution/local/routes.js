@@ -5,8 +5,7 @@
 
 const distribution = require("../../distribution");
 
-let mp = {
-};
+let mp = {};
 
 
 /**
@@ -24,11 +23,22 @@ function get(configuration, callback) {
     }
   }
   else {
-    if (configuration.service in mp) {
-      callback(null, mp[configuration.service]);
+    if (configuration.gid && configuration.gid == "local") {
+      if (configuration.service in mp) {
+        callback(null, mp[configuration.service]);
+      }
+      else {
+        callback(new Error("No corresponding service found."));
+      }
     }
     else {
-      callback(new Error("No corresponding service found."));
+      const service = globalThis.distribution[configuration.gid]?.[configuration.service];
+      if (service) {
+        callback(null, service);
+      }
+      else {
+        callback(new Error("No corresponding service found."));
+      }
     }
   }
 }

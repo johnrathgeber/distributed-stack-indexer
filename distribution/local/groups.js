@@ -5,12 +5,25 @@
  * @typedef {import("../types.js").Node} Node
  */
 
+const { id } = require("../util/util.js");
+const node = require("./node.js");
+const setup = require('../all/all.js');
+
+let mp = {};
+mp['all'] = {};
+mp['all'][id.getSID(globalThis.distribution.node.config)] = globalThis.distribution.node.config;
+
 /**
  * @param {string} name
  * @param {Callback} callback
  */
 function get(name, callback) {
-  return callback(new Error('groups.get not implemented'));
+  if (name in mp) {
+    callback(null, mp[name]);
+  }
+  else {
+    callback(new Error("No corresponding group found."));
+  }
 }
 
 /**
@@ -19,7 +32,16 @@ function get(name, callback) {
  * @param {Callback} callback
  */
 function put(config, group, callback) {
-  return callback(new Error('groups.put not implemented'));
+  if (typeof config == "string") {
+    mp[config] = group;
+    globalThis.distribution[config] = setup.setup({"gid": config});
+    callback(null, mp[config]);
+  }
+  else {
+    mp[config.gid] = group;
+    globalThis.distribution[config.gid] = setup.setup(config);
+    callback(null, mp[config.gid]);
+  }
 }
 
 /**
@@ -27,7 +49,15 @@ function put(config, group, callback) {
  * @param {Callback} callback
  */
 function del(name, callback) {
-  return callback(new Error('groups.del not implemented'));
+  if (name in mp) {
+    const res = mp[name];
+    delete mp[name];
+    delete globalThis.distribution[name];
+    callback(null, res);
+  }
+  else {
+    callback(new Error("No group to delete."));
+  }
 }
 
 /**
@@ -36,7 +66,17 @@ function del(name, callback) {
  * @param {Callback} callback
  */
 function add(name, node, callback) {
-  return callback(new Error('groups.add not implemented'));
+  if (name in mp) {
+    mp[name][id.getSID(node)] = node;
+    if (callback) {
+      callback(null, mp[name]);
+    }
+  }
+  else {
+    if (callback) {
+      callback(new Error("Group not found."));
+    }
+  }
 };
 
 /**
@@ -45,7 +85,14 @@ function add(name, node, callback) {
  * @param {Callback} callback
  */
 function rem(name, node, callback) {
-  return callback(new Error('groups.rem not implemented'));
+  const nodeSID = typeof node == "string" ? node : id.getSID(node);
+  if (name in mp && nodeSID in mp[name]) {
+    delete mp[name][nodeSID];
+    callback(null, mp[name]);
+  }
+  else {
+    callback(new Error("Group name/node combination not found."))
+  }
 };
 
 module.exports = {get, put, del, add, rem};

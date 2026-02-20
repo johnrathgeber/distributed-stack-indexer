@@ -65,17 +65,17 @@
       "hours": 999,
       "loc": 999,
       "dev": {
-        "cpu-no": 999,
-        "mem-gb": 999,
-        "ssd-gb": 999
+        "cpu-no": 12,
+        "mem-gb": 15.7,
+        "ssd-gb": 477
       },
       "throughput": {
-        "dev": [],
-        "aws": []
+        "dev": {"comm": 999},
+        "aws": {"comm": 999}
       },
       "latency": {
-        "dev": [],
-        "aws": []
+        "dev": {"comm": 999},
+        "aws": {"comm": 999}
       },
       "dloc": -99
     },

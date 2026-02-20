@@ -23,7 +23,42 @@ function status(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
-    callback(new Error('status.get not implemented'));
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      let total = Object.keys(v).length;
+      if (total == 0) {
+        callback(null, {});
+        return;
+      }
+      let nodeToRes = {};
+      let aggregate = 0;
+      const isAggregate = configuration == "heapUsed" || configuration == "heapTotal";
+      /** @type {Object.<string, Error>} */
+      let nodeToError = {};
+      for (const nodeSID in v) {
+        const remote = {node: v[nodeSID], service: "status", method: "get"};
+        globalThis.distribution.local.comm.send([configuration], remote, (e, v) => {
+          if (e) {
+            nodeToError[nodeSID] = e;
+          }
+          else {
+            if (isAggregate) {
+              aggregate += v;
+            }
+            else {
+              nodeToRes[nodeSID] = v;
+            }
+          }
+          total--;
+          if (total == 0) {
+            callback(nodeToError, isAggregate ? aggregate : nodeToRes);
+          }
+        });
+      }
+    });
   }
 
   /**

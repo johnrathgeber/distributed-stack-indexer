@@ -161,7 +161,7 @@ function start(callback) {
         res.end(distribution.util.serialize([e, null]));
         return;
       }
-      routes.get(service, (e, v) => {
+      routes.get({service: service, gid: gid}, (e, v) => {
         if (e) {
           res.writeHead(400, {'Content-Type': 'application/json'});
           res.end(distribution.util.serialize([e, null]));
