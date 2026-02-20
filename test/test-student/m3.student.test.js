@@ -14,24 +14,27 @@ const id = distribution.util.id;
 const n1 = {ip: '127.0.0.1', port: 7000};
 const n2 = {ip: '127.0.0.1', port: 7001};
 
+const n1SID = id.getSID(n1);
+const n2SID = id.getSID(n2);
+
 test('(1 pts) student test', (done) => {
   const groupC = {};
-  groupC[id.getSID(n2)] = n2;
-  groupC[id.getSID(n1)] = n1;
+  groupC[n2SID] = n2;
+  groupC[n1SID] = n1;
 
   const config = {gid: 'groupC'};
 
   distribution.local.groups.put(config, groupC, (e, v) => {
     distribution.groupC.groups.put(config, groupC, (e, v) => {
       const remote = {node: n1, service: "groups", method: "rem"};
-      distribution.local.comm.send(["groupC", n1], remote, (e, v) => {
-        distribution.local.comm.send(["groupC", n2], remote, (e, v) => {
+      distribution.local.comm.send(["groupC", n1SID], remote, (e, v) => {
+        distribution.local.comm.send(["groupC", n2SID], remote, (e, v) => {
           distribution.groupC.groups.get('groupC', (e, v) => {
-            const n1View = v[id.getSID(n1)];
-            const n2View = v[id.getSID(n2)];
+            const n1View = v[n1SID];
+            const n2View = v[n2SID];
             try {
               expect(Object.keys(n2View)).toEqual(expect.arrayContaining(
-                  [id.getSID(n1), id.getSID(n2)],
+                  [n1SID, n2SID],
               ));
               expect(Object.keys(n1View)).toEqual([]);
               done();
@@ -48,21 +51,21 @@ test('(1 pts) student test', (done) => {
 
 test('(1 pts) student test', (done) => {
   const groupC = {};
-  groupC[id.getSID(n2)] = n2;
-  groupC[id.getSID(n1)] = n1;
+  groupC[n2SID] = n2;
+  groupC[n1SID] = n1;
 
   const config = {gid: 'groupC'};
 
   distribution.local.groups.put(config, groupC, (e, v) => {
     distribution.groupC.groups.put(config, groupC, (e, v) => {
       const remote = {service: "groups", method: "rem"};
-      distribution.groupC.comm.send(["groupC", n1], remote, (e, v) => {
-        distribution.groupC.comm.send(["groupC", n2], remote, (e, v) => {
+      distribution.groupC.comm.send(["groupC", n1SID], remote, (e, v) => {
+        distribution.groupC.comm.send(["groupC", n2SID], remote, (e, v) => {
           distribution.groupC.groups.get('groupC', (e, v) => {
             try {
               expect(e).toEqual({});
-              expect(v[id.getSID(n1)]).toEqual({});
-              expect(v[id.getSID(n2)]).toEqual({});
+              expect(v[n1SID]).toEqual({});
+              expect(v[n2SID]).toEqual({});
               done();
             }
             catch (error) {
@@ -78,15 +81,15 @@ test('(1 pts) student test', (done) => {
 
 test('(1 pts) student test', (done) => {
   const groupC = {};
-  groupC[id.getSID(n2)] = n2;
-  groupC[id.getSID(n1)] = n1;
+  groupC[n2SID] = n2;
+  groupC[n1SID] = n1;
 
   const config = {gid: 'groupC'};
 
   distribution.local.groups.put(config, groupC, (e, v) => {
     distribution.groupC.groups.put(config, groupC, (e, v) => {
       const remote = {service: "groups", method: "rem"};
-      distribution.groupC.comm.send(["groupC", n1], remote, (e, v) => {
+      distribution.groupC.comm.send(["groupC", n1SID], remote, (e, v) => {
         distribution.groupC.status.get("nid", (e, v) => {
           try {
             expect(e).toEqual({});
@@ -104,24 +107,24 @@ test('(1 pts) student test', (done) => {
 
 test('(1 pts) student test', (done) => {
   const groupC = {};
-  groupC[id.getSID(n2)] = n2;
-  groupC[id.getSID(n1)] = n1;
+  groupC[n2SID] = n2;
+  groupC[n1SID] = n1;
 
   const config = {gid: 'groupC'};
 
   distribution.local.groups.put(config, groupC, (e, v) => {
     distribution.groupC.groups.put(config, groupC, (e, v) => {
       const remote = {node: n1, service: "groups", method: "rem"};
-      distribution.local.comm.send(["groupC", n1], remote, (e, v) => {
+      distribution.local.comm.send(["groupC", n1SID], remote, (e, v) => {
         distribution.all.groups.get("groupC", (e, v) => {
           try {
             expect(e).toEqual({});
-            expect(Object.keys(v)).toEqual(expect.arrayContaining([id.getSID(n1), id.getSID(n2)]));
-            expect(Object.keys(v[id.getSID(n1)])).toEqual([id.getSID(n2)]);
-            expect(v[id.getSID(n1)][id.getSID(n2)].port).toEqual(n2.port);
-            expect(Object.keys(v[id.getSID(n2)])).toEqual(expect.arrayContaining([id.getSID(n1), id.getSID(n2)]));
-            expect(v[id.getSID(n2)][id.getSID(n1)].port).toEqual(n1.port);
-            expect(v[id.getSID(n2)][id.getSID(n2)].port).toEqual(n2.port);
+            expect(Object.keys(v)).toEqual(expect.arrayContaining([n1SID, n2SID]));
+            expect(Object.keys(v[n1SID])).toEqual([n2SID]);
+            expect(v[n1SID][n2SID].port).toEqual(n2.port);
+            expect(Object.keys(v[n2SID])).toEqual(expect.arrayContaining([n1SID, n2SID]));
+            expect(v[n2SID][n1SID].port).toEqual(n1.port);
+            expect(v[n2SID][n2SID].port).toEqual(n2.port);
             done();
           }
           catch (error) {
@@ -135,8 +138,8 @@ test('(1 pts) student test', (done) => {
 
 test('(1 pts) student test', (done) => {
   const groupC = {};
-  groupC[id.getSID(n2)] = n2;
-  groupC[id.getSID(n1)] = n1;
+  groupC[n2SID] = n2;
+  groupC[n1SID] = n1;
 
   const config = {gid: 'groupC'};
 
@@ -145,13 +148,13 @@ test('(1 pts) student test', (done) => {
       distribution.all.groups.del("groupC", (e, v) => {
         try {
           expect(e).toEqual({});
-          expect(Object.keys(v)).toEqual(expect.arrayContaining([id.getSID(n1), id.getSID(n2)]));
-          expect(Object.keys(v[id.getSID(n1)])).toEqual(expect.arrayContaining([id.getSID(n1), id.getSID(n2)]));
-          expect(v[id.getSID(n1)][id.getSID(n1)].port).toEqual(n1.port);
-          expect(v[id.getSID(n1)][id.getSID(n2)].port).toEqual(n2.port);
-          expect(Object.keys(v[id.getSID(n2)])).toEqual(expect.arrayContaining([id.getSID(n1), id.getSID(n2)]));
-          expect(v[id.getSID(n2)][id.getSID(n1)].port).toEqual(n1.port);
-          expect(v[id.getSID(n2)][id.getSID(n2)].port).toEqual(n2.port);
+          expect(Object.keys(v)).toEqual(expect.arrayContaining([n1SID, n2SID]));
+          expect(Object.keys(v[n1SID])).toEqual(expect.arrayContaining([n1SID, n2SID]));
+          expect(v[n1SID][n1SID].port).toEqual(n1.port);
+          expect(v[n1SID][n2SID].port).toEqual(n2.port);
+          expect(Object.keys(v[n2SID])).toEqual(expect.arrayContaining([n1SID, n2SID]));
+          expect(v[n2SID][n1SID].port).toEqual(n1.port);
+          expect(v[n2SID][n2SID].port).toEqual(n2.port);
           done();
         }
         catch (error) {
