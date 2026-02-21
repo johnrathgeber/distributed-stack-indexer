@@ -36,6 +36,7 @@ function status(config) {
       let nodeToRes = {};
       let aggregate = 0;
       const isAggregate = configuration == "heapTotal";
+      const isNIDOrSID = configuration == "nid" || configuration == "sid";
       /** @type {Object.<string, Error>} */
       let nodeToError = {};
       for (const nodeSID in v) {
@@ -55,7 +56,7 @@ function status(config) {
           }
           total--;
           if (total == 0) {
-            callback(nodeToError, isAggregate ? aggregate : nodeToRes);
+            callback(nodeToError, isAggregate ? aggregate : isNIDOrSID ? Object.values(nodeToRes) : nodeToRes);
             // callback(nodeToError, nodeToRes);
           }
         });
