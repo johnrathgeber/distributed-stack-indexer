@@ -38,8 +38,10 @@ function put(state, configuration, callback) {
     mp[id.getID(state)] = state;
   }
   else {
-    mp[configuration.key] = state;
-    // don't know what to do with gid yet.
+    if (!mp[configuration.gid]) {
+      mp[configuration.gid] = {};
+    }
+    mp[configuration.gid][configuration.key] = state;
   }
   callback(null, state);
 };
@@ -67,8 +69,12 @@ function get(configuration, callback) {
     }
   }
   else {
-    if (configuration.key in mp) {
-      callback(null, mp[configuration.key]);
+    if (!mp[configuration.gid]) {
+      callback(new Error(`Given configuration gid not found in map: ${configuration}`));
+      return;
+    }
+    if (configuration.key in mp[configuration.gid]) {
+      callback(null, mp[configuration.gid][configuration.key]);
     }
     else {
       callback(new Error(`Given configuration not found in map: ${configuration}`));
@@ -92,9 +98,13 @@ function del(configuration, callback) {
     }
   }
   else {
-    if (configuration.key in mp) {
-      const r = mp[configuration.key];
-      delete mp[configuration.key];
+    if (!mp[configuration.gid]) {
+      callback(new Error(`Given configuration gid not found in map: ${configuration}`));
+      return;
+    }
+    if (configuration.key in mp[configuration.gid]) {
+      const r = mp[configuration.gid][configuration.key];
+      delete mp[configuration.gid][configuration.key];
       callback(null, r);
     }
     else {

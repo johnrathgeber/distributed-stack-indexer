@@ -6,6 +6,7 @@
  * @typedef {import("../types.js").Node} Node
  */
 
+const { id } = require("../util/util.js");
 
 /**
  * @typedef {Object} StoreConfig
@@ -31,7 +32,35 @@ function store(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
-    return callback(new Error('store.get not implemented'));
+    const gid = typeof configuration == "string" ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = typeof configuration == "string" ? configuration : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      let target = null;
+      for (const [k, v2] of Object.entries(v)) {
+        if (id.getNID(v2) == nid) {
+          target = v2;
+        }
+      }
+      if (!target) {
+        callback(new Error(`Error while resolving to hashed node.`));
+        return;
+      }
+      const remote = {node: target, service: "store", method: "get"};
+      globalThis.distribution.local.comm.send([{gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed store get: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**
@@ -40,7 +69,37 @@ function store(config) {
    * @param {Callback} callback
    */
   function put(state, configuration, callback) {
-    return callback(new Error('store.put not implemented'));
+    const gid = typeof configuration == "string" || configuration === null ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = configuration === null ? id.getID(state)
+        : typeof configuration == "string" ? configuration
+        : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      let target = null;
+      for (const [k, v2] of Object.entries(v)) {
+        if (id.getNID(v2) == nid) {
+          target = v2;
+        }
+      }
+      if (!target) {
+        callback(new Error(`Error while resolving to hashed node.`));
+        return;
+      }
+      const remote = {node: target, service: "store", method: "put"};
+      globalThis.distribution.local.comm.send([state, {gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed store put: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**
@@ -57,7 +116,36 @@ function store(config) {
    * @param {Callback} callback
    */
   function del(configuration, callback) {
-    return callback(new Error('store.del not implemented'));
+    const gid = typeof configuration == "string" ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = typeof configuration == "string" ? configuration
+        : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      let target = null;
+      for (const [k, v2] of Object.entries(v)) {
+        if (id.getNID(v2) == nid) {
+          target = v2;
+        }
+      }
+      if (!target) {
+        callback(new Error(`Error while resolving to hashed node.`));
+        return;
+      }
+      const remote = {node: target, service: "store", method: "del"};
+      globalThis.distribution.local.comm.send([{gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed store del: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**

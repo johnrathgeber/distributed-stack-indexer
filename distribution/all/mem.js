@@ -5,6 +5,8 @@
  * @typedef {import("../types.js").Node} Node
  */
 
+const { id } = require("../util/util.js");
+
 
 /**
  * @typedef {Object} StoreConfig
@@ -36,7 +38,26 @@ function mem(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
-    return callback(new Error('mem.get not implemented'));
+    const gid = typeof configuration == "string" ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = typeof configuration == "string" ? configuration : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      const target = Object.values(v).find(n => id.getNID(n) == nid);
+      const remote = {node: target, service: "mem", method: "get"};
+      globalThis.distribution.local.comm.send([{gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed mem get: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**
@@ -45,7 +66,28 @@ function mem(config) {
    * @param {Callback} callback
    */
   function put(state, configuration, callback) {
-    return callback(new Error('mem.put not implemented'));
+    const gid = typeof configuration == "string" || configuration === null ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = configuration === null ? id.getID(state)
+        : typeof configuration == "string" ? configuration
+        : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      const target = Object.values(v).find(n => id.getNID(n) == nid);
+      const remote = {node: target, service: "mem", method: "put"};
+      globalThis.distribution.local.comm.send([state, {gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed mem put: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**
@@ -62,7 +104,27 @@ function mem(config) {
    * @param {Callback} callback
    */
   function del(configuration, callback) {
-    return callback(new Error('mem.del not implemented'));
+    const gid = typeof configuration == "string" ? context.gid : configuration.gid;
+    globalThis.distribution.local.groups.get(gid, (e, v) => {
+      if (e) {
+        callback(e);
+        return;
+      }
+      const kid = typeof configuration == "string" ? configuration
+        : configuration.key;
+      const nids = Object.values(v).map(x => id.getNID(x));
+      const nid = context.hash(id.getID(kid), nids);
+      const target = Object.values(v).find(n => id.getNID(n) == nid);
+      const remote = {node: target, service: "mem", method: "del"};
+      globalThis.distribution.local.comm.send([{gid: gid, key: kid}], remote, (e, v) => {
+        if (e) {
+          callback(new Error(`Error while doing distributed mem del: ${e.message}`));
+        }
+        else {
+          callback(null, v);
+        }
+      });
+    });
   }
 
   /**

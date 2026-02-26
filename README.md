@@ -244,3 +244,31 @@ My implementation comprises `7` new software components, totaling `580` added li
 > What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
 
 `If we made one node send the message to all nodes right away, we would have a super heavy load of network traffic all at once. By using the gossip protocol, we distribute this load across a (short) period of time, while still allowing the message to reach all other nodes reliably.`
+
+# M4: Distributed Storage
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered
+
+`My implementation comprises FILLIN new software components, totaling FILLIN added lines of code over the previous implementation. Key challenges included 1, 2, 3 + how you solved them.`
+
+
+Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M4 (`hours`) and the lines of code per task.
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness* -- number of tests and time they take.
+
+
+*Performance* -- insertion and retrieval.
+
+
+## Key Feature
+
+> Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?

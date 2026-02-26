@@ -53,7 +53,8 @@ function put(state, configuration, callback) {
   }
   else {
     const alphanumeric = (configuration.key).replace(/[^a-zA-Z0-9]/g, '');
-    const filePath = path.resolve("store", alphanumeric);
+    const filePath = path.resolve("store", configuration.gid, alphanumeric);
+    fs.mkdirSync(path.resolve("store", configuration.gid), {recursive: true});
     fs.writeFile(filePath, serialized, (e) => {
       if (e) {
         callback(new Error(`Error while putting a file into store: ${e.message}`));
@@ -62,7 +63,6 @@ function put(state, configuration, callback) {
         callback(null, state);
       }
     });
-    // don't know what to do with gid yet.
   }
 }
 
@@ -85,7 +85,7 @@ function get(configuration, callback) {
   else {
     try {
       const alphanumeric = (configuration.key).replace(/[^a-zA-Z0-9]/g, '');
-      const filePath = path.resolve("store", alphanumeric);
+      const filePath = path.resolve("store", configuration.gid, alphanumeric);
       const data = fs.readFileSync(filePath, 'utf8');
       callback(null, util.deserialize(data));
     }
@@ -115,7 +115,7 @@ function del(configuration, callback) {
   else {
     try {
       const alphanumeric = (configuration.key).replace(/[^a-zA-Z0-9]/g, '');
-      const filePath = path.resolve("store", alphanumeric);
+      const filePath = path.resolve("store", configuration.gid, alphanumeric);
       const data = fs.readFileSync(filePath, 'utf8');
       fs.unlinkSync(filePath);
       callback(null, util.deserialize(data));
