@@ -252,7 +252,7 @@ My implementation comprises `7` new software components, totaling `580` added li
 
 > Summarize your implementation, including key challenges you encountered
 
-`My implementation comprises FILLIN new software components, totaling FILLIN added lines of code over the previous implementation. Key challenges included 1, 2, 3 + how you solved them.`
+`My implementation comprises 3 new software components (mem, store, and hashing), totaling 700 added lines of code over the previous implementation. Key challenges included constructing the distributed student tests, implementing consistent hashing, and resolving file issues for store. For the first problem, I ran into issues with the beforeAll() and afterAll() functions for some reason (which I copied from the given distributed store tests), so I had to modify them to accommodate only two nodes running and avoid exiting the program early. For the second problem, I was running into trouble with the sorting of the bigint list, and I researched how to sort it and I found out that it sorts lexicographically, so I found a workaround to that. For the third problem, I kept getting 'file not found' errors with the distributed store, and it took me a while to figure out that the problem was actually with the hashing functions, and not my implementation of store.`
 
 
 Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M4 (`hours`) and the lines of code per task.
@@ -263,12 +263,14 @@ Remember to update the `report` section of the `package.json` file with the tota
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness* -- number of tests and time they take.
+*Correctness* -- number of tests and time they take. I wrote 5 tests, and they take roughly 0.8s to run (not including the performance tests).
 
 
-*Performance* -- insertion and retrieval.
+*Performance* -- insertion and retrieval. I wrote one performance test, which takes about 3s to run. It measures the throughput and latency, while sending 1000 gets and puts.
 
 
 ## Key Feature
 
 > Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?
+
+Doing everything all at once would cause a very heavy load on the system, because if the store is very large, then the system has to handle a massive batch request all at once, which could overload it. Instead, by doing a streaming approach, the system takes an amount which it can handle and continously relocates keys, ensuring that it completes its job without error and still in a timely manner.
