@@ -206,58 +206,56 @@ const n2 = {ip: '127.0.0.1', port: 8001};
 beforeAll((done) => {
   // First, stop the nodes if they are running
   const remote = {service: 'status', method: 'stop'};
+  mygroupGroup[id.getSID(n1)] = n1;
+  group2Group[id.getSID(n2)] = n2;
 
   remote.node = n1;
   distribution.local.comm.send([], remote, (e, v) => {
     remote.node = n2;
-    distribution.local.comm.send([], remote, (e, v) => {});
-  });
-
-  mygroupGroup[id.getSID(n1)] = n1;
-
-  group2Group[id.getSID(n2)] = n2;
-
-  distribution.node.start((e) => {
-    if (e) {
-      done(e);
-      return;
-    }
-    const groupInstantiation = (e, v) => {
-      const mygroupConfig = {gid: 'mygroup'};
-      const group2Config = {gid: 'group2', hash: id.consistentHash};
-      // Create some groups
-      distribution.local.groups
-          .put(mygroupConfig, mygroupGroup, (e, v) => {
-            distribution.local.groups
-              .put(group2Config, group2Group, (e, v) => {
-                  done();
-                });
-              });
-    };
-
-    // Start the nodes
-    distribution.local.status.spawn(n1, (e, v) => {
-      if (e) {
-        done(e);
-        return;
-      }
-      distribution.local.status.spawn(n2, (e, v) => {
+    distribution.local.comm.send([], remote, (e, v) => {
+      distribution.node.start((e) => {
         if (e) {
           done(e);
           return;
         }
-        groupInstantiation();
+        const groupInstantiation = (e, v) => {
+          const mygroupConfig = {gid: 'mygroup'};
+          const group2Config = {gid: 'group2', hash: id.consistentHash};
+          // Create some groups
+          distribution.local.groups
+            .put(mygroupConfig, mygroupGroup, (e, v) => {
+              distribution.local.groups
+                .put(group2Config, group2Group, (e, v) => {
+                    done();
+                  });
+                });
+        };
+
+        // Start the nodes
+        distribution.local.status.spawn(n1, (e, v) => {
+          if (e) {
+            done(e);
+            return;
+          }
+          distribution.local.status.spawn(n2, (e, v) => {
+            if (e) {
+              done(e);
+              return;
+            }
+            groupInstantiation();
+          });
+        });
       });
     });
   });
 });
 
 afterAll((done) => {
-  distribution.mygroup.status.stop((e, v) => {
-    const remote = {service: 'status', method: 'stop'};
-    remote.node = n1;
+  const remote = {service: 'status', method: 'stop'};
+  remote.node = n1;
+  distribution.local.comm.send([], remote, (e, v) => {
+    remote.node = n2;
     distribution.local.comm.send([], remote, (e, v) => {
-      remote.node = n2;
       if (globalThis.distribution.node.server) {
         globalThis.distribution.node.server.close();
       }
