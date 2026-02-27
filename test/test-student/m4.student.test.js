@@ -198,6 +198,44 @@ test('(1 pts) student test', (done) => {
   });
 });
 
+test('performance', (done) => {
+    const N = 1000;
+    let pairs = [];
+    for (let i = 0; i < N; i++) {
+      const key = "perf-" + Math.random().toString(36).slice(2, 10);
+      const value = {
+        id: i,
+        score: Math.floor(Math.random() * 10000),
+      };
+      pairs.push({key, value});
+    }
+    let startTime = performance.now();
+    const doPut = (i) => {
+      if (i === N) {
+        let elapsed = performance.now() - startTime;
+        console.log(`put throughput: ${(N / (elapsed / 1000))} puts/s, put latency: ${((elapsed / 1000) / N)} s/get`);
+        startTime = performance.now();
+        const doGet = (j) => {
+          if (j === N) {
+            elapsed = performance.now() - startTime;
+            console.log(`get throughput: ${(N / (elapsed / 1000))} gets/s, get latency: ${((elapsed / 1000) / N)} s/get`);
+            done();
+            return;
+          }
+          distribution.mygroup.store.get(pairs[j].key, (e, v) => {
+            doGet(j + 1);
+          });
+        };
+        doGet(0);
+        return;
+      }
+      distribution.mygroup.store.put(pairs[i].value, pairs[i].key, (e, v) => {
+        doPut(i + 1);
+      });
+    };
+    doPut(0);
+  }, 200000);
+
 const mygroupGroup = {};
 const group2Group = {};
 

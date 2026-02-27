@@ -3,7 +3,7 @@
   "version": "0.2.31",
   "description": "A library for building distributed systems.",
   "main": "distribution.js",
-  "useLibrary": true,
+  "useLibrary": false,
   "directories": {
     "test": "test"
   },
@@ -89,12 +89,25 @@
         "ssd-gb": 477
       },
       "throughput": {
-        "dev": [],
-        "aws": []
+        "dev": 
+          {"get": 2542.00,
+          "put": 1005.43},
+        "aws1": {"get": 999,
+          "put": 999},
+        "aws2": {"get": 999,
+          "put": 999},
+        "aws3": {"get": 999,
+          "put": 999}
       },
       "latency": {
-        "dev": [],
-        "aws": []
+        "dev": {"get": 0.00039,
+          "put": 0.000995},
+        "aws1": {"get": 999,
+          "put": 999},
+        "aws2": {"get": 999,
+          "put": 999},
+        "aws3": {"get": 999,
+          "put": 999}
       },
       "dloc": -99
     },
