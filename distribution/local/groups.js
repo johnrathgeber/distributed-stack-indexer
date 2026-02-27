@@ -22,7 +22,7 @@ function get(name, callback) {
     callback(null, mp[name]);
   }
   else {
-    callback(new Error("No corresponding group found."));
+    callback(new Error(`No corresponding group found: ${name}`));
   }
 }
 
