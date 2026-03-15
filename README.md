@@ -283,7 +283,7 @@ Doing everything all at once would cause a very heavy load on the system, becaus
 > Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M5 (`hours`) and the lines of code per task.
 
 
-My implementation comprises `<number>` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `<1, 2, 3 + how you solved them>`.
+My implementation comprises `2` new software components, totaling `400` added lines of code over the previous implementation (including tests and filled in scenarios). Key challenges included `figuring out how to communicate between worker nodes and the orchestrator, using the store route with hashing to store data on the correct nodes, and finding which folder names to use when storing things in the store. For the first challenge, I had a lot of trouble at first figuring out how to maintain state with the notify() function, but then I realized that we only have to call notify once for each node, and from there the orchestrator can schedule further calls. For the second challenge, at first I didn't hash in mapIt and shuffleIt, so each worker node had access to all the key-value pairs in the store, so in some scenarios I was getting triple the output I needed -- then I looked into it more closely and realized that each node should be responsible only for its store, not others. For the third challenge, I was having some trouble with overlapping keys -- keys returned from map (stored in the store) would match the original keys also stored in the store. As a result, weird race conditions would happen in map when two nodes are writing/reading from a file at the same time. To fix this, I made all folder names unique so that the data would be kept separate for each node -- no overlap`.
 
 
 ## Correctness & Performance Characterization
@@ -291,12 +291,13 @@ My implementation comprises `<number>` new software components, totaling `<numbe
 > Describe how you characterized the correctness and performance of your implementation
 
 
-*Correctness*: I wrote <X> cases testing <1, 2, 3>.
+*Correctness*: I wrote 5 cases testing aggregation of the same keys returned by map, a variety of value types (string, number, array, etc.), and a variety of reducing functions (also dependent on value type).
 
 
-*Performance*: My <workflow> can sustain <throughput> <unit>/second, with an average latency of <number> seconds per <unit>.
+*Performance*: My TF-IDF workflow can sustain 107.7862 execs/second, with an average latency of 0.0093 seconds per exec.
 
 
 ## Key Feature
 
 > Which extra features did you implement and how?
+I did not implement any extra credit features this time -- however, I did end up having to implement handling a null input with store.get, as well as store.append.

@@ -121,12 +121,10 @@
         "ssd-gb": 477
       },
       "throughput": {
-        "dev": [],
-        "aws": []
+        "dev": 999.999
       },
       "latency": {
-        "dev": [],
-        "aws": []
+        "dev": 999.999
       },
       "dloc": -99
     }

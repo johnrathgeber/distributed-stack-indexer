@@ -116,7 +116,7 @@ function mr(config) {
                                 cb(e);
                                 return;
                               }
-                              toRtn = toRtn.concat(v2 || null);
+                              toRtn = toRtn.concat(v2 || []);
                               cntr++;
                               if (cntr === total) {
                                 const total2 = servicesCreated.length;

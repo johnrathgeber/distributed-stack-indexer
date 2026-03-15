@@ -160,7 +160,7 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     const mySID = util.id.getSID(globalThis.distribution.node.config);
     const myNID = util.id.getNID(sidToNode[mySID]);
     const myKeys = keys.filter(key => util.id.consistentHash(util.id.getID(key), nodeNIDs) === myNID);
-    fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({myKeys}) + '\n');
+    // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({myKeys}) + '\n');
     const total = myKeys.length;
     let cntr = 0;
     let toRtn = [];
