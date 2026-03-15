@@ -32,6 +32,27 @@ function store(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
+    if (configuration === null) {
+      globalThis.distribution.local.groups.get(context.gid, (e, v) => {
+        if (e) { callback(e); return; }
+        const nodes = Object.values(v);
+        let allKeys = [];
+        let cntr = 0;
+        for (const node of nodes) {
+          const remote = {node: node, service: 'store', method: 'get'};
+          globalThis.distribution.local.comm.send([{gid: context.gid, key: null}], remote, (e, v) => {
+            if (!e) {
+              allKeys = allKeys.concat(v);
+            }
+            cntr++;
+            if (cntr === nodes.length) {
+              callback(null, [...new Set(allKeys)]);
+            }
+          });
+        }
+      });
+      return;
+    }
     const gid = typeof configuration == "string" ? context.gid : configuration.gid;
     globalThis.distribution.local.groups.get(gid, (e, v) => {
       if (e) {

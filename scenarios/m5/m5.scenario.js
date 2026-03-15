@@ -62,6 +62,7 @@ test('(0 pts) (scenario) all.mr:ncdc', (done) => {
 
       distribution.ncdc.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
         try {
+          expect(e).toBeNull();
           expect(v).toEqual(expect.arrayContaining(expected));
           done();
         } catch (e) {
@@ -94,9 +95,20 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
 */
 
   const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+    const out = [];
+    words.forEach((w) => {
+      const o = {};
+      o[w] = 1;
+      out.push(o);
+    });
+    return out;
   };
 
   const reducer = (key, values) => {
+    const out = {};
+    out[key] = values.reduce((a, b) => a + b, 0);
+    return out;
   };
 
   const dataset = [
@@ -169,11 +181,46 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
 */
 
   const mapper = (key, value) => {
+    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+    const totalWords = words.length;
+    const wordCounts = {};
+    words.forEach((w) => {
+      if (!wordCounts[w]) {
+        wordCounts[w] = 0;
+      }
+      wordCounts[w]++;
+    });
+    const out = [];
+    for (const w in wordCounts) {
+      const o = {};
+      o[w] = {[key]: wordCounts[w] / totalWords};
+      out.push(o);
+    }
+    return out;
   };
 
   // Reduce function: calculate TF-IDF for each word
   const reducer = (key, values) => {
     const totalDocs = 3;
+    let docCount = 0;
+    const docsFound = {};
+    values.forEach((v) => {
+      for (const doc in v) {
+        if (!docsFound[doc]) {
+          docsFound[doc] = true;
+          docCount++;
+        }
+      }
+    });
+    const idf = Math.log10(totalDocs / docCount);
+    const out = {};
+    out[key] = {};
+    values.forEach((v) => {
+      for (const doc in v) {
+        out[key][doc] = Math.round(v[doc] * idf * 100) / 100;
+      }
+    });
+    return out;
   };
 
   const dataset = [
@@ -243,7 +290,64 @@ test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
 });
 
 test('(10 pts) (scenario) all.mr:strmatch', (done) => {
-    done(new Error('Implement the map and reduce functions'));
+  const mapper = (key, value) => {
+    const regex = /^.*ca.*$/gm;
+    const out = [];
+    if (regex.test(value)) {
+      out.push({[key]: true});
+    }
+    return out;
+  };
+
+  const reducer = (key, values) => {
+    const out = {};
+    out[key] = values.reduce((a, b) => a || b, false);
+    return out;
+  };
+
+  const dataset = [
+    {'doc1': 'machine learning is amazing'},
+    {'doc2': 'im aching to do more'},
+    {'doc3': 'crackacalacking the accumulating accordingly'},
+    {'doc4': 'dud'},
+    {'doc5': 'the cat in the hat'},
+  ];
+
+  const expected = [{'doc3': true}, {'doc5': true}];
+
+  const doMapReduce = () => {
+    distribution.strmatch.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toEqual(dataset.length);
+      } catch (e) {
+        done(e);
+      }
+
+      distribution.strmatch.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+        try {
+          expect(v).toEqual(expect.arrayContaining(expected));
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  };
+
+  let cntr = 0;
+
+  // Send the dataset to the cluster
+  dataset.forEach((o) => {
+    const key = Object.keys(o)[0];
+    const value = o[key];
+    distribution.strmatch.store.put(value, key, (e, v) => {
+      cntr++;
+      // Once the dataset is in place, run the map reduce
+      if (cntr === dataset.length) {
+        doMapReduce();
+      }
+    });
+  });
 });
 
 test('(10 pts) (scenario) all.mr:ridx', (done) => {
@@ -314,7 +418,12 @@ beforeAll((done) => {
               const tfidfConfig = {gid: 'tfidf'};
               distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
                 distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  done();
+                  const strmatchConfig = {gid: 'strmatch'};
+                  distribution.local.groups.put(strmatchConfig, strmatchGroup, (e, v) => {
+                    distribution.strmatch.groups.put(strmatchConfig, strmatchGroup, (e, v) => {
+                      done();
+                    });
+                  });
                 });
               });
             });

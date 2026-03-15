@@ -274,3 +274,29 @@ Remember to update the `report` section of the `package.json` file with the tota
 > Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?
 
 Doing everything all at once would cause a very heavy load on the system, because if the store is very large, then the system has to handle a massive batch request all at once, which could overload it. Instead, by doing a streaming approach, the system takes an amount which it can handle and continously relocates keys, ensuring that it completes its job without error and still in a timely manner.
+
+# M5: Distributed Execution Engine
+
+
+## Summary
+
+> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M5 (`hours`) and the lines of code per task.
+
+
+My implementation comprises `<number>` new software components, totaling `<number>` added lines of code over the previous implementation. Key challenges included `<1, 2, 3 + how you solved them>`.
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness*: I wrote <X> cases testing <1, 2, 3>.
+
+
+*Performance*: My <workflow> can sustain <throughput> <unit>/second, with an average latency of <number> seconds per <unit>.
+
+
+## Key Feature
+
+> Which extra features did you implement and how?

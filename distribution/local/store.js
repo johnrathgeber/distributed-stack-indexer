@@ -83,6 +83,18 @@ function get(configuration, callback) {
     }
   }
   else {
+    if (configuration.key === null) {
+      const dirPath = path.resolve('store', configuration.gid);
+      fs.readdir(dirPath, (e, files) => {
+        if (e) {
+          callback(null, []);
+        }
+        else {
+          callback(null, files);
+        }
+      });
+      return;
+    }
     try {
       const alphanumeric = (configuration.key).replace(/[^a-zA-Z0-9]/g, '');
       const filePath = path.resolve("store", configuration.gid, alphanumeric);
@@ -131,8 +143,32 @@ function del(configuration, callback) {
  * @param {SimpleConfig} configuration
  * @param {Callback} callback
  */
-function append(state, configuration, callback) {
-  return callback(new Error('store.append not implemented'));
+function append(state, configuration, callback) {                                                                       
+  get(configuration, (e, v) => {                                                                                      
+    const arr = e ? [] : v;                                                                                             
+    arr.push(state);                                                                                                  
+    const serialized = util.serialize(arr);                                                                             
+    try {                                                                                                               
+      let filePath;
+      if (typeof configuration === 'string') {
+        const alphanumeric = configuration.replace(/[^a-zA-Z0-9]/g, '');
+        filePath = path.resolve('store', alphanumeric);
+      }
+      else if (configuration === null) {
+        const alphanumeric = id.getID(state).replace(/[^a-zA-Z0-9]/g, '');
+        filePath = path.resolve('store', alphanumeric);
+      }
+      else {
+        const alphanumeric = (configuration.key).replace(/[^a-zA-Z0-9]/g, '');
+        fs.mkdirSync(path.resolve('store', configuration.gid), {recursive: true});
+        filePath = path.resolve('store', configuration.gid, alphanumeric);
+      }
+      fs.writeFileSync(filePath, serialized);
+      callback(null, arr);
+    } catch (err) {
+      callback(new Error(`Error while appending: ${err.message}`));
+    }
+  });
 }
 
 module.exports = {put, get, del, append};
