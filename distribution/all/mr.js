@@ -159,7 +159,6 @@ function mr(config) {
               cb(e);
               return;
             }
-            cb(null, 10);
           });
         }
       });

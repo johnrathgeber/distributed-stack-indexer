@@ -68,7 +68,12 @@ function send(message, remote, callback) {
         const result = distribution.util.deserialize(responseBody);
         if (Array.isArray(result) && result.length == 2) {
           const [e, v] = result;
-          e ? callback(e) : callback(null, v);
+          // e ? callback(e) : callback(null, v);
+          if (e) {
+            callback(new Error(`local.comm ${JSON.stringify({e, remote, message})}`));
+            return;
+          }
+          callback(null, v);
         }
         else {
           callback(new Error(`Did not receive array of length 2 from node.js, got: ${result}`));
