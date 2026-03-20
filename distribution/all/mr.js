@@ -118,7 +118,7 @@ function mr(config) {
                               }
                               toRtn = toRtn.concat(v2 || []);
                               cntr++;
-                              cb(null, toRtn);
+                              cb(null, 10);
                               return;
                               if (cntr === total) {
                                 const total2 = servicesCreated.length;
