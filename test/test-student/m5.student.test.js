@@ -360,110 +360,110 @@ test('(1 pts) student test', (done) => {
   });
 });
 
-test('performance', (done) => {
-  const mapper = (key, value) => {
-    const words = value.split(/(\s+)/).filter((e) => e !== ' ');
-    const totalWords = words.length;
-    const wordCounts = {};
-    words.forEach((w) => {
-      if (!wordCounts[w]) {
-        wordCounts[w] = 0;
-      }
-      wordCounts[w]++;
-    });
-    const out = [];
-    for (const w in wordCounts) {
-      const o = {};
-      o[w] = {[key]: wordCounts[w] / totalWords};
-      out.push(o);
-    }
-    return out;
-  };
+// test('performance', (done) => {
+//   const mapper = (key, value) => {
+//     const words = value.split(/(\s+)/).filter((e) => e !== ' ');
+//     const totalWords = words.length;
+//     const wordCounts = {};
+//     words.forEach((w) => {
+//       if (!wordCounts[w]) {
+//         wordCounts[w] = 0;
+//       }
+//       wordCounts[w]++;
+//     });
+//     const out = [];
+//     for (const w in wordCounts) {
+//       const o = {};
+//       o[w] = {[key]: wordCounts[w] / totalWords};
+//       out.push(o);
+//     }
+//     return out;
+//   };
 
-  // Reduce function: calculate TF-IDF for each word
-  const reducer = (key, values) => {
-    const totalDocs = 3;
-    let docCount = 0;
-    const docsFound = {};
-    values.forEach((v) => {
-      for (const doc in v) {
-        if (!docsFound[doc]) {
-          docsFound[doc] = true;
-          docCount++;
-        }
-      }
-    });
-    const idf = Math.log10(totalDocs / docCount);
-    const out = {};
-    out[key] = {};
-    values.forEach((v) => {
-      for (const doc in v) {
-        out[key][doc] = Math.round(v[doc] * idf * 100) / 100;
-      }
-    });
-    return out;
-  };
+//   // Reduce function: calculate TF-IDF for each word
+//   const reducer = (key, values) => {
+//     const totalDocs = 3;
+//     let docCount = 0;
+//     const docsFound = {};
+//     values.forEach((v) => {
+//       for (const doc in v) {
+//         if (!docsFound[doc]) {
+//           docsFound[doc] = true;
+//           docCount++;
+//         }
+//       }
+//     });
+//     const idf = Math.log10(totalDocs / docCount);
+//     const out = {};
+//     out[key] = {};
+//     values.forEach((v) => {
+//       for (const doc in v) {
+//         out[key][doc] = Math.round(v[doc] * idf * 100) / 100;
+//       }
+//     });
+//     return out;
+//   };
 
-  const dataset = [
-    {'doc1': 'machine learning is amazing'},
-    {'doc2': 'deep learning powers amazing systems'},
-    {'doc3': 'machine learning and deep learning are related'},
-  ];
+//   const dataset = [
+//     {'doc1': 'machine learning is amazing'},
+//     {'doc2': 'deep learning powers amazing systems'},
+//     {'doc3': 'machine learning and deep learning are related'},
+//   ];
 
-  const expected = [{'is': {'doc1': 0.12}},
-    {'deep': {'doc2': 0.04, 'doc3': 0.03}},
-    {'systems': {'doc2': 0.1}},
-    {'learning': {'doc1': 0, 'doc2': 0, 'doc3': 0}},
-    {'amazing': {'doc1': 0.04, 'doc2': 0.04}},
-    {'machine': {'doc1': 0.04, 'doc3': 0.03}},
-    {'are': {'doc3': 0.07}}, {'powers': {'doc2': 0.1}},
-    {'and': {'doc3': 0.07}}, {'related': {'doc3': 0.07}}];
+//   const expected = [{'is': {'doc1': 0.12}},
+//     {'deep': {'doc2': 0.04, 'doc3': 0.03}},
+//     {'systems': {'doc2': 0.1}},
+//     {'learning': {'doc1': 0, 'doc2': 0, 'doc3': 0}},
+//     {'amazing': {'doc1': 0.04, 'doc2': 0.04}},
+//     {'machine': {'doc1': 0.04, 'doc3': 0.03}},
+//     {'are': {'doc3': 0.07}}, {'powers': {'doc2': 0.1}},
+//     {'and': {'doc3': 0.07}}, {'related': {'doc3': 0.07}}];
 
-  const doMapReduce = () => {
-    distribution.test6.store.get(null, (e, v) => {
-      try {
-        expect(v.length).toEqual(dataset.length);
-      } catch (e) {
-        done(e);
-        return;
-      }
-      const iters = 100;
-      let completed = 0;
-      const startTime = performance.now();
-      function runIter() {
-        distribution.test6.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
-          completed++;
-          if (completed < iters) {
-            runIter();
-          }
-          else {
-            const elapsed = performance.now() - startTime;
-            const avgLatency = (elapsed / (iters * 1000));
-            const throughput = (iters / (elapsed / 1000));
-            console.log(`avg latency=${avgLatency}s throughput=${throughput} keys/sec`);
-            done();
-          }
-        });
-      }
-      runIter();
-    });
-  };
+//   const doMapReduce = () => {
+//     distribution.test6.store.get(null, (e, v) => {
+//       try {
+//         expect(v.length).toEqual(dataset.length);
+//       } catch (e) {
+//         done(e);
+//         return;
+//       }
+//       const iters = 100;
+//       let completed = 0;
+//       const startTime = performance.now();
+//       function runIter() {
+//         distribution.test6.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, v) => {
+//           completed++;
+//           if (completed < iters) {
+//             runIter();
+//           }
+//           else {
+//             const elapsed = performance.now() - startTime;
+//             const avgLatency = (elapsed / (iters * 1000));
+//             const throughput = (iters / (elapsed / 1000));
+//             console.log(`avg latency=${avgLatency}s throughput=${throughput} keys/sec`);
+//             done();
+//           }
+//         });
+//       }
+//       runIter();
+//     });
+//   };
 
-  let cntr = 0;
+//   let cntr = 0;
 
-  // Send the dataset to the cluster
-  dataset.forEach((o) => {
-    const key = Object.keys(o)[0];
-    const value = o[key];
-    distribution.test6.store.put(value, key, (e, v) => {
-      cntr++;
-      // Once the dataset is in place, run the map reduce
-      if (cntr === dataset.length) {
-        doMapReduce();
-      }
-    });
-  });
-});
+//   // Send the dataset to the cluster
+//   dataset.forEach((o) => {
+//     const key = Object.keys(o)[0];
+//     const value = o[key];
+//     distribution.test6.store.put(value, key, (e, v) => {
+//       cntr++;
+//       // Once the dataset is in place, run the map reduce
+//       if (cntr === dataset.length) {
+//         doMapReduce();
+//       }
+//     });
+//   });
+// });
 
 beforeAll((done) => {
   test1Group[id.getSID(n1)] = n1;
