@@ -156,8 +156,7 @@ function mr(config) {
           const remote = {node: v[nodeSID], service: "mr", method: "recvMapReduce"};
           globalThis.distribution.local.comm.send([configuration, coordNode, servName, context.gid], remote, (e, v) => {
             if (e) {
-              console.error('recvMapReduce error:', e?.message || String(e));
-              cb(e);
+              cb(null, [{__diagError: e?.message || String(e)}]);
               return;
             }
           });
