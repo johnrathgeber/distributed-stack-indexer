@@ -146,7 +146,6 @@ function mr(config) {
           }
         }
       serv.notify = notify;
-      // const remote = {node: globalThis.distribution.node.config, service: "routes", method: "put"};
       globalThis.distribution.local.routes.put(serv, servName, (e, v2) => {
         if (e) {
           cb(e);
@@ -156,7 +155,7 @@ function mr(config) {
           const remote = {node: v[nodeSID], service: "mr", method: "recvMapReduce"};
           globalThis.distribution.local.comm.send([configuration, coordNode, servName, context.gid], remote, (e, v) => {
             if (e) {
-              cb(null, [{__diagError: e?.message || String(e)}]);
+              cb(e);
               return;
             }
           });
