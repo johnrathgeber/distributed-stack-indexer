@@ -59,9 +59,9 @@ function recvMapReduce(configuration, coordNode, servName, gid, callback) {
  * @param {Callback} callback
  */
 function mapIt(nodeNIDs, sidToNode, callback) {
-    const mySID = util.id.getSID(globalThis.distribution.node.config);
-    const myNID = util.id.getNID(sidToNode[mySID]);
-    const myKeys = mrConfig.keys.filter(key => util.id.consistentHash(util.id.getID(key), nodeNIDs) === myNID);
+    const mySID = globalThis.distribution.util.id.getSID(globalThis.distribution.node.config);
+    const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
+    const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
     let cntr = 0;
     if (total == 0) {
@@ -96,9 +96,9 @@ function mapIt(nodeNIDs, sidToNode, callback) {
  * @param {Callback} callback
  */
 function shuffleIt(nodeNIDs, sidToNode, callback) {
-    const mySID = util.id.getSID(globalThis.distribution.node.config);
-      const myNID = util.id.getNID(sidToNode[mySID]);
-      const myKeys = mrConfig.keys.filter(key => util.id.consistentHash(util.id.getID(key), nodeNIDs) === myNID);
+    const mySID = globalThis.distribution.util.id.getSID(globalThis.distribution.node.config);
+      const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
+      const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
       const total = myKeys.length;
       let cntr = 0;
       let newKeys = [];
@@ -130,7 +130,7 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
             for (const obj of v) {
                 const shuffleKey = Object.keys(obj)[0];
                 newKeys.push(shuffleKey);
-                const nid = util.id.consistentHash(util.id.getID(shuffleKey), nodeNIDs);
+                const nid = globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs);
                 const sid = nid.substring(0, 5);
                 const node = sidToNode[sid];
                 const remote = {node: node, service: "store", method: "append"};
@@ -157,9 +157,9 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
  * @param {Callback} callback
  */
 function reduceIt(keys, nodeNIDs, sidToNode, callback) {
-    const mySID = util.id.getSID(globalThis.distribution.node.config);
-    const myNID = util.id.getNID(sidToNode[mySID]);
-    const myKeys = keys.filter(key => util.id.consistentHash(util.id.getID(key), nodeNIDs) === myNID);
+    const mySID = globalThis.distribution.util.id.getSID(globalThis.distribution.node.config);
+    const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
+    const myKeys = keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({myKeys}) + '\n');
     const total = myKeys.length;
     let cntr = 0;

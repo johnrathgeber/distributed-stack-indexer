@@ -68,10 +68,8 @@ function send(message, remote, callback) {
         const result = distribution.util.deserialize(responseBody);
         if (Array.isArray(result) && result.length == 2) {
           const [e, v] = result;
-          // e ? callback(e) : callback(null, v);
           if (e) {
-            callback(new Error(`local.comm ${JSON.stringify({e, remote, message})}`));
-            // callback(null, 10);
+            callback(e);
             return;
           }
           callback(null, v);
