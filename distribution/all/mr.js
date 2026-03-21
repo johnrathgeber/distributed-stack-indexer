@@ -6,7 +6,8 @@
  */
 
 const { id } = require("../util/util.js");
-const localMr = require("../local/mr.js");
+const { recvMapReduce: _mrRecv, mapIt: _mrMapIt, shuffleIt: _mrShuffle, reduceIt: _mrReduce } = require('../local/mr.js');
+const localMr = { recvMapReduce: _mrRecv, mapIt: _mrMapIt, shuffleIt: _mrShuffle, reduceIt: _mrReduce };
 
 /**
  * Map functions used for mapreduce
