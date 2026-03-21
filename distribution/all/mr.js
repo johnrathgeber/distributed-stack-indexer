@@ -170,7 +170,7 @@ function mr(config) {
                   sendRecv();
                 });
               } else if (e) {
-                cb(new Error('retry-after-install failed: ' + (e?.message || String(e))));
+                cb(null, ['DBG:retry-failed:' + (e?.message || String(e))]);
               }
             });
           };
