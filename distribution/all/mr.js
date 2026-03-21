@@ -160,6 +160,7 @@ function mr(config) {
             globalThis.distribution.local.comm.send([configuration, coordNode, servName, context.gid], recvRemote, (e, v2) => {
               if (e && !installed) {
                 installed = true;
+                process.stderr.write('installing mr on worker, first attempt error: ' + (e?.message || String(e)) + '\n');
                 const installRemote = {node: workerNode, service: "routes", method: "put"};
                 globalThis.distribution.local.comm.send([localMr, 'mr'], installRemote, (e2, v3) => {
                   if (e2) {
@@ -169,7 +170,7 @@ function mr(config) {
                   sendRecv();
                 });
               } else if (e) {
-                cb(e);
+                cb(new Error('retry-after-install failed: ' + (e?.message || String(e))));
               }
             });
           };
