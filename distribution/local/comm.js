@@ -8,6 +8,10 @@ const http = require('node:http');
 const { Http2ServerRequest } = require("node:http2");
 const { options } = require("yargs");
 
+// Reuse TCP connections across requests to avoid TIME_WAIT exhaustion
+// on systems with small ephemeral-port ranges (e.g., WSL2).
+const keepAliveAgent = new http.Agent({keepAlive: true, maxSockets: 64, maxFreeSockets: 16});
+
 /**
  * @typedef {Object} Target
  * @property {string} service
@@ -57,6 +61,7 @@ function send(message, remote, callback) {
     port: node.port,
     path: path,
     method: 'PUT',
+    agent: keepAliveAgent,
   };
   const req = http.request(options, (res) => {
     let responseBody = "";

@@ -39,6 +39,9 @@ const store = require('./store.js');
 /* Map-Reduce Service */
 const mr = require('./mr.js');
 
+/* RDD Service */
+const rdd = require('./rdd.js');
+
 /**
  * @typedef {Object} GroupServices
  * @property {import("./comm.js").Comm} comm
@@ -63,6 +66,7 @@ function setup(config) {
     mem: mem(config),
     store: store(config),
     mr: mr(config),
+    rdd: rdd(config),
   };
 }
 
@@ -75,5 +79,6 @@ module.exports = {
   mem,
   store,
   mr,
+  rdd,
   setup,
 };
