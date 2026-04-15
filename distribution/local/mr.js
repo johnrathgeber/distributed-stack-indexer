@@ -97,57 +97,49 @@ function mapIt(nodeNIDs, sidToNode, callback) {
  */
 function shuffleIt(nodeNIDs, sidToNode, callback) {
     const mySID = globalThis.distribution.util.id.getSID(globalThis.distribution.node.config);
-      const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
-      const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
-      const total = myKeys.length;
-      let cntr = 0;
-      let newKeys = [];
-      if (total == 0) {
-          callback(null, newKeys);
-          return;
-      }
-      for (const key of myKeys) {
+    const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
+    const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
+    const total = myKeys.length;
+    let newKeys = [];
+    if (total == 0) { callback(null, newKeys); return; }
+
+    // Collect all mapped outputs first, then batch by destination node
+    let remaining = total;
+    const nodeBatches = {}; // sid -> [{key, value}]
+
+    for (const key of myKeys) {
         globalThis.distribution.local.store.get({key: key, gid: mrServName + "map"}, (e, v) => {
-            if (e) {
-                cntr++;
-                if (cntr == total) {
-                    // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({newKeys}) + '\n');
-                    callback(null, newKeys);
+            if (!e && v) {
+                v = Array.isArray(v) ? v : [v];
+                for (const obj of v) {
+                    const shuffleKey = Object.keys(obj)[0];
+                    newKeys.push(shuffleKey);
+                    const nid = globalThis.distribution.util.id.consistentHash(
+                        globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs
+                    );
+                    const sid = nid.substring(0, 5);
+                    if (!nodeBatches[sid]) nodeBatches[sid] = [];
+                    nodeBatches[sid].push({key: shuffleKey, value: obj[shuffleKey]});
                 }
-                return;
             }
-            let cntr2 = 0;
-            v = Array.isArray(v) ? v : [v];
-            const total2 = v.length;
-            if (total2 == 0) {
-                cntr++;
-                if (cntr == total) {
-                    // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({newKeys}) + '\n');
-                    callback(null, newKeys);
-                }
-                return;
-            }
-            for (const obj of v) {
-                const shuffleKey = Object.keys(obj)[0];
-                newKeys.push(shuffleKey);
-                const nid = globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs);
-                const sid = nid.substring(0, 5);
-                const node = sidToNode[sid];
-                const remote = {node: node, service: "store", method: "append"};
-                globalThis.distribution.local.comm.send([obj[shuffleKey], {key: shuffleKey, gid: mrServName}], remote, (e, v) => {
-                    if (e) {
-                        callback(e);
-                        return;
-                    }
-                    cntr2++;
-                    if (cntr2 == total2) {
-                        cntr++;
-                        if (cntr == total) {
-                            // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({newKeys}) + '\n');
-                            callback(null, newKeys);
+            remaining--;
+            if (remaining === 0) {
+                const sids = Object.keys(nodeBatches);
+                if (sids.length === 0) { callback(null, newKeys); return; }
+                let batchCntr = 0;
+                for (const sid of sids) {
+                    const node = sidToNode[sid];
+                    const remote = {node, service: 'store', method: 'batchAppend'};
+                    globalThis.distribution.local.comm.send(
+                        [nodeBatches[sid], {gid: mrServName}],
+                        remote,
+                        (e) => {
+                            if (e) { callback(e); return; }
+                            batchCntr++;
+                            if (batchCntr === sids.length) callback(null, newKeys);
                         }
-                    }
-                });
+                    );
+                }
             }
         });
     }

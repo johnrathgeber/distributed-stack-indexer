@@ -171,4 +171,39 @@ function append(state, configuration, callback) {
   });
 }
 
-module.exports = {put, get, del, append};
+/**
+ * @param {Array<{key: string, value: any}>} items
+ * @param {{gid: string}} configuration
+ * @param {Callback} callback
+ */
+function batchAppend(items, configuration, callback) {
+  if (!items || items.length === 0) return callback(null, {});
+  // Group by key so same-key values are written atomically in one pass
+  const byKey = new Map();
+  for (const {key, value} of items) {
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(value);
+  }
+  const keys = [...byKey.keys()];
+  let remaining = keys.length;
+  let failed = false;
+  for (const key of keys) {
+    const values = byKey.get(key);
+    get({key, gid: configuration.gid}, (e, existing) => {
+      if (failed) return;
+      const arr = e ? [] : (Array.isArray(existing) ? existing : [existing]);
+      for (const v of values) arr.push(v);
+      const alphanumeric = key.replace(/[^a-zA-Z0-9]/g, '');
+      const dirPath = path.resolve('store', configuration.gid);
+      const filePath = path.resolve(dirPath, alphanumeric);
+      fs.mkdirSync(dirPath, {recursive: true});
+      fs.writeFile(filePath, util.serialize(arr), (err) => {
+        if (err) { failed = true; return callback(new Error(err.message)); }
+        remaining--;
+        if (remaining === 0) callback(null, {});
+      });
+    });
+  }
+}
+
+module.exports = {put, get, del, append, batchAppend};
