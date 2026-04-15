@@ -100,49 +100,64 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
-    let newKeys = [];
-    if (total == 0) { callback(null, newKeys); return; }
+    const newKeysSet = new Set();
+    if (total == 0) { callback(null, []); return; }
 
-    // Collect all mapped outputs first, then batch by destination node
-    let remaining = total;
-    const nodeBatches = {}; // sid -> [{key, value}]
+    const CHUNK = 500;
+    let keyIdx = 0;
 
-    for (const key of myKeys) {
-        globalThis.distribution.local.store.get({key: key, gid: mrServName + "map"}, (e, v) => {
-            if (!e && v) {
-                v = Array.isArray(v) ? v : [v];
-                for (const obj of v) {
-                    const shuffleKey = Object.keys(obj)[0];
-                    newKeys.push(shuffleKey);
-                    const nid = globalThis.distribution.util.id.consistentHash(
-                        globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs
-                    );
-                    const sid = nid.substring(0, 5);
-                    if (!nodeBatches[sid]) nodeBatches[sid] = [];
-                    nodeBatches[sid].push({key: shuffleKey, value: obj[shuffleKey]});
+    function processChunk() {
+        const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
+        keyIdx += CHUNK;
+        let remaining = chunk.length;
+        const nodeBatches = {};
+
+        for (const key of chunk) {
+            globalThis.distribution.local.store.get({key: key, gid: mrServName + "map"}, (e, v) => {
+                if (!e && v) {
+                    v = Array.isArray(v) ? v : [v];
+                    for (const obj of v) {
+                        const shuffleKey = Object.keys(obj)[0];
+                        newKeysSet.add(shuffleKey);
+                        const nid = globalThis.distribution.util.id.consistentHash(
+                            globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs
+                        );
+                        const sid = nid.substring(0, 5);
+                        if (!nodeBatches[sid]) nodeBatches[sid] = [];
+                        nodeBatches[sid].push({key: shuffleKey, value: obj[shuffleKey]});
+                    }
                 }
-            }
-            remaining--;
-            if (remaining === 0) {
-                const sids = Object.keys(nodeBatches);
-                if (sids.length === 0) { callback(null, newKeys); return; }
-                let batchCntr = 0;
-                for (const sid of sids) {
-                    const node = sidToNode[sid];
-                    const remote = {node, service: 'store', method: 'batchAppend'};
-                    globalThis.distribution.local.comm.send(
-                        [nodeBatches[sid], {gid: mrServName}],
-                        remote,
-                        (e) => {
-                            if (e) { callback(e); return; }
-                            batchCntr++;
-                            if (batchCntr === sids.length) callback(null, newKeys);
-                        }
-                    );
+                remaining--;
+                if (remaining === 0) {
+                    const sids = Object.keys(nodeBatches);
+                    if (sids.length === 0) {
+                        if (keyIdx >= total) callback(null, [...newKeysSet]);
+                        else processChunk();
+                        return;
+                    }
+                    let batchCntr = 0;
+                    for (const sid of sids) {
+                        const node = sidToNode[sid];
+                        const remote = {node, service: 'store', method: 'batchAppend'};
+                        globalThis.distribution.local.comm.send(
+                            [nodeBatches[sid], {gid: mrServName}],
+                            remote,
+                            (e) => {
+                                if (e) { callback(e); return; }
+                                batchCntr++;
+                                if (batchCntr === sids.length) {
+                                    if (keyIdx >= total) callback(null, [...newKeysSet]);
+                                    else processChunk();
+                                }
+                            }
+                        );
+                    }
                 }
-            }
-        });
+            });
+        }
     }
+
+    processChunk();
 };
 
 /**
