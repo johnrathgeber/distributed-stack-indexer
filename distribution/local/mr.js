@@ -31,6 +31,11 @@
 const util = require("../util/util.js");
 const fs = require('fs');
 
+function log(msg) {
+    const ip = globalThis.distribution?.node?.config?.ip || '?';
+    fs.appendFileSync('/tmp/mr-debug.log', `[${new Date().toISOString()}] [${ip}] ${msg}\n`);
+}
+
 let mrConfig = null;
 let mrServName = null;
 let mrGid = null;
@@ -63,6 +68,7 @@ function mapIt(nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
+    log(`mapIt start: ${total} keys`);
     let cntr = 0;
     if (total == 0) {
         callback(null, {});
@@ -85,6 +91,7 @@ function mapIt(nodeNIDs, sidToNode, callback) {
                 }
                 cntr++;
                 if (cntr == total) {
+                    log(`mapIt done: ${total} keys`);
                     callback(null, {});
                 }
             });
@@ -100,6 +107,7 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
+    log(`shuffleIt start: ${total} keys`);
     const newKeysSet = new Set();
     if (total == 0) { callback(null, []); return; }
 
@@ -108,6 +116,7 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
 
     function processChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
+        log(`shuffleIt chunk ${keyIdx}/${total}`);
         keyIdx += CHUNK;
         let remaining = chunk.length;
         const nodeBatches = {};
@@ -146,7 +155,7 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                                 if (e) { callback(e); return; }
                                 batchCntr++;
                                 if (batchCntr === sids.length) {
-                                    if (keyIdx >= total) callback(null, [...newKeysSet]);
+                                    if (keyIdx >= total) { log(`shuffleIt done`); callback(null, [...newKeysSet]); }
                                     else processChunk();
                                 }
                             }
@@ -169,10 +178,10 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     const myKeys = keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({myKeys}) + '\n');
     const total = myKeys.length;
+    log(`reduceIt start: ${total} keys`);
     let cntr = 0;
     let toRtn = [];
     if (total == 0) {
-        // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({toRtn}) + '\n');
         callback(null, toRtn);
         return;
     }
@@ -190,7 +199,7 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
             cntr++;
             toRtn.push(reduced);
             if (cntr == total) {
-                // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({toRtn}) + '\n');
+                log(`reduceIt done: ${toRtn.length} results`);
                 callback(null, toRtn);
             }
         });
