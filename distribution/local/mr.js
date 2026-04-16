@@ -69,34 +69,44 @@ function mapIt(nodeNIDs, sidToNode, callback) {
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
     log(`mapIt start: ${total} keys`);
-    let cntr = 0;
     if (total == 0) {
         callback(null, {});
         return;
     }
-    for (const key of myKeys) {
-        globalThis.distribution.local.store.get({key: key, gid: mrGid}, (e, v) => {
-            if (e) {
-                cntr++;
-                if (cntr == total) {
-                    callback(null, {});
-                }
-                return;
-            }
-            const mapped = mrConfig.map(key, v);
-            globalThis.distribution.local.store.put(mapped, {key: key, gid: mrServName + "map"}, (e, v) => {
+
+    const CHUNK = 100;
+    let keyIdx = 0;
+
+    function mapChunk() {
+        const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
+        keyIdx += CHUNK;
+        log(`mapIt chunk ${keyIdx}/${total}`);
+        let remaining = chunk.length;
+
+        for (const key of chunk) {
+            globalThis.distribution.local.store.get({key: key, gid: mrGid}, (e, v) => {
                 if (e) {
-                    callback(e);
+                    remaining--;
+                    if (remaining == 0) {
+                        if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
+                        else mapChunk();
+                    }
                     return;
                 }
-                cntr++;
-                if (cntr == total) {
-                    log(`mapIt done: ${total} keys`);
-                    callback(null, {});
-                }
+                const mapped = mrConfig.map(key, v);
+                globalThis.distribution.local.store.put(mapped, {key: key, gid: mrServName + "map"}, (e, v) => {
+                    if (e) { callback(e); return; }
+                    remaining--;
+                    if (remaining == 0) {
+                        if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
+                        else mapChunk();
+                    }
+                });
             });
-        });
+        }
     }
+
+    mapChunk();
 };
 
 /**
