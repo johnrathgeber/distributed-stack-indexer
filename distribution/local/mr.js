@@ -89,7 +89,7 @@ function mapIt(nodeNIDs, sidToNode, callback) {
                     remaining--;
                     if (remaining == 0) {
                         if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
-                        else mapChunk();
+                        else { mapChunk(); }
                     }
                     return;
                 }
@@ -99,7 +99,7 @@ function mapIt(nodeNIDs, sidToNode, callback) {
                     remaining--;
                     if (remaining == 0) {
                         if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
-                        else mapChunk();
+                        else { mapChunk(); }
                     }
                 });
             });
@@ -142,7 +142,7 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                             globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs
                         );
                         const sid = nid.substring(0, 5);
-                        if (!nodeBatches[sid]) nodeBatches[sid] = [];
+                        if (!nodeBatches[sid]) { nodeBatches[sid] = []; }
                         nodeBatches[sid].push({key: shuffleKey, value: obj[shuffleKey]});
                     }
                 }
@@ -150,8 +150,8 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                 if (remaining === 0) {
                     const sids = Object.keys(nodeBatches);
                     if (sids.length === 0) {
-                        if (keyIdx >= total) callback(null, [...newKeysSet]);
-                        else processChunk();
+                        if (keyIdx >= total) { callback(null, [...newKeysSet]); }
+                        else { processChunk(); }
                         return;
                     }
                     let batchCntr = 0;
@@ -162,11 +162,11 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                             [nodeBatches[sid], {gid: mrServName}],
                             remote,
                             (e) => {
-                                if (e) { callback(e); return; }
+                                if (e) { log(`shuffleIt batchAppend error to ${sid}: ${e.message}`); callback(e); return; }
                                 batchCntr++;
                                 if (batchCntr === sids.length) {
                                     if (keyIdx >= total) { log(`shuffleIt done`); callback(null, [...newKeysSet]); }
-                                    else processChunk();
+                                    else { processChunk(); }
                                 }
                             }
                         );
@@ -186,34 +186,47 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     const mySID = globalThis.distribution.util.id.getSID(globalThis.distribution.node.config);
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
-    // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({myKeys}) + '\n');
     const total = myKeys.length;
     log(`reduceIt start: ${total} keys`);
-    let cntr = 0;
-    let toRtn = [];
     if (total == 0) {
-        callback(null, toRtn);
+        callback(null, []);
         return;
     }
-    for (const key of myKeys) {
-        globalThis.distribution.local.store.get({key: key, gid: mrServName}, (e, v) => {
-            if (e) {
-                cntr++;
-                if (cntr == total) {
-                    // fs.appendFileSync('/tmp/mr-debug.log', JSON.stringify({toRtn}) + '\n');
-                    callback(null, toRtn);
+
+    const CHUNK = 100;
+    let keyIdx = 0;
+
+    function reduceChunk() {
+        const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
+        keyIdx += CHUNK;
+        log(`reduceIt chunk ${keyIdx}/${total}`);
+        let remaining = chunk.length;
+
+        for (const key of chunk) {
+            globalThis.distribution.local.store.get({key: key, gid: mrServName}, (e, v) => {
+                if (e) {
+                    remaining--;
+                    if (remaining == 0) {
+                        if (keyIdx >= total) { log(`reduceIt done: ${total} keys`); callback(null, []); }
+                        else { reduceChunk(); }
+                    }
+                    return;
                 }
-                return;
-            }
-            const reduced = mrConfig.reduce(key, v);
-            cntr++;
-            toRtn.push(reduced);
-            if (cntr == total) {
-                log(`reduceIt done: ${toRtn.length} results`);
-                callback(null, toRtn);
-            }
-        });
+                const reduced = mrConfig.reduce(key, v);
+                const term = Object.keys(reduced)[0];
+                globalThis.distribution.index.store.put(reduced[term], globalThis.distribution.util.id.getID(term), (e) => {
+                    if (e) { log(`reduceIt put err: ${e.message}`); }
+                    remaining--;
+                    if (remaining == 0) {
+                        if (keyIdx >= total) { log(`reduceIt done: ${total} keys`); callback(null, []); }
+                        else { reduceChunk(); }
+                    }
+                });
+            });
+        }
     }
+
+    reduceChunk();
 };
 
 module.exports = {recvMapReduce, mapIt, shuffleIt, reduceIt};

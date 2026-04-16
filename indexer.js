@@ -79,35 +79,21 @@ const reducer = (key, values) => {
 distribution.node.start(() => {
   distribution.local.groups.put({gid: 'corpus'}, group, () => {
     distribution.corpus.groups.put({gid: 'corpus'}, group, () => {
-      distribution.corpus.store.get(null, (e, keys) => {
-        if (!keys || keys.length == 0) {
-          process.exit(1);
-        }
-        console.log(`Indexing ${keys.length} documents...`);
+      distribution.local.groups.put({gid: 'index'}, group, () => {
+        distribution.index.groups.put({gid: 'index'}, group, () => {
+          distribution.corpus.store.get(null, (e, keys) => {
+            if (!keys || keys.length == 0) {
+              process.exit(1);
+            }
+            console.log(`Indexing ${keys.length} documents...`);
 
-        distribution.corpus.mr.exec({keys, map: mapper, reduce: reducer}, (e, results) => {
-          if (e) {
-            process.exit(1);
-          }
-          console.log(`Got ${results.length} terms. Storing index...`);
-
-          distribution.local.groups.put({gid: 'index'}, group, () => {
-            distribution.index.groups.put({gid: 'index'}, group, () => {
-              let n = results.length;
-              if (n == 0) {
-                process.exit(0);
+            distribution.corpus.mr.exec({keys, map: mapper, reduce: reducer}, (e, results) => {
+              if (e) {
+                console.error('mr.exec error:', e);
+                process.exit(1);
               }
-
-              for (const result of results) {
-                const term = Object.keys(result)[0];
-                const key = id.getID(term);
-                distribution.index.store.put(result[term], key, () => {
-                  if (--n == 0) {
-                    console.log(`Stored ${results.length} terms.`);
-                    process.exit(0);
-                  }
-                });
-              }
+              console.log(`MapReduce complete. Index stored directly by workers.`);
+              process.exit(0);
             });
           });
         });
