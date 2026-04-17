@@ -229,4 +229,62 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     reduceChunk();
 };
 
-module.exports = {recvMapReduce, mapIt, shuffleIt, reduceIt};
+function recoverReduce(servName, callback) {
+    log(`recoverReduce start from ${servName}`);
+    globalThis.distribution.local.store.get({gid: servName, key: null}, (e, files) => {
+        if (e || !files || files.length === 0) {
+            log(`recoverReduce: no files found`);
+            callback(null, []);
+            return;
+        }
+        const total = files.length;
+        log(`recoverReduce: ${total} keys`);
+
+        const CHUNK = 100;
+        let keyIdx = 0;
+
+        function doChunk() {
+            const chunk = files.slice(keyIdx, keyIdx + CHUNK);
+            keyIdx += CHUNK;
+            log(`recoverReduce chunk ${keyIdx}/${total}`);
+            let remaining = chunk.length;
+
+            for (const key of chunk) {
+                globalThis.distribution.local.store.get({key, gid: servName}, (e, v) => {
+                    if (e) {
+                        remaining--;
+                        if (remaining === 0) {
+                            if (keyIdx >= total) {
+                                log(`recoverReduce done`);
+                                callback(null, []);
+                            } else {
+                                doChunk();
+                            }
+                        }
+                        return;
+                    }
+                    const reduced = mrConfig.reduce(key, v);
+                    const term = Object.keys(reduced)[0];
+                    globalThis.distribution.index.store.put(reduced[term], globalThis.distribution.util.id.getID(term), (e) => {
+                        if (e) {
+                            log(`recoverReduce put err: ${e.message}`);
+                        }
+                        remaining--;
+                        if (remaining === 0) {
+                            if (keyIdx >= total) {
+                                log(`recoverReduce done`);
+                                callback(null, []);
+                            } else {
+                                doChunk();
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        doChunk();
+    });
+}
+
+module.exports = {recvMapReduce, mapIt, shuffleIt, reduceIt, recoverReduce};

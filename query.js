@@ -43,7 +43,7 @@ distribution.node.start(() => {
       const scores = {};
 
       for (const term of terms) {
-        distribution.index.store.get(id.getID(term), (e, urlMap) => {
+        distribution.index.store.get(id.getID(term.replace(/[^a-zA-Z0-9]/g, '')), (e, urlMap) => {
           if (urlMap) {
             for (const [url, score] of Object.entries(urlMap)) {
               scores[url] = (scores[url] || 0) + score;
