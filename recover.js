@@ -36,7 +36,6 @@ distribution.node.start(() => {
         distribution.index.groups.put({gid: 'index'}, group, () => {
           const nodes = Object.values(group);
           const coordNode = distribution.node.config;
-          const localMr = require('./distribution/local/mr.js');
           const dummyConfig = {map: () => [], reduce: reducer, keys: []};
 
           let notifyCntr = 0;
@@ -68,16 +67,10 @@ distribution.node.start(() => {
           distribution.local.routes.put(notifyServ, SERV_NAME, () => {
             for (const node of nodes) {
               distribution.local.comm.send(
-                [localMr, 'mr'],
-                {node, service: 'routes', method: 'put'},
-                () => {
-                  distribution.local.comm.send(
-                    [dummyConfig, coordNode, SERV_NAME, 'corpus'],
-                    {node, service: 'mr', method: 'recvMapReduce'},
-                    (e) => {
-                      if (e) { console.error('recvMapReduce error:', e); process.exit(1); }
-                    }
-                  );
+                [dummyConfig, coordNode, SERV_NAME, 'corpus'],
+                {node, service: 'mr', method: 'recvMapReduce'},
+                (e) => {
+                  if (e) { console.error('recvMapReduce error:', e); process.exit(1); }
                 }
               );
             }
