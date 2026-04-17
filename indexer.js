@@ -30,8 +30,8 @@ const mapper = (key, value) => {
   try {
     fs.writeFileSync(tmpFile, text, 'utf8');
     const raw = execSync(
-      `cat "${tmpFile}" | "${BASE}/c/process.sh" | node "${BASE}/c/stem.js"`,
-      {cwd: BASE, encoding: 'utf8', timeout: 60000}
+      `timeout -k 5 30 bash -c 'cat "${tmpFile}" | "${BASE}/c/process.sh" | node "${BASE}/c/stem.js"'`,
+      {cwd: BASE, encoding: 'utf8', timeout: 40000}
     );
     terms = raw.trim().split('\n').filter((t) => t.length > 0);
   } catch (e) {
