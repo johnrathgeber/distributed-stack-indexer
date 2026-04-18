@@ -1,4 +1,4 @@
-const coordIP = process.argv[2] || '127.0.0.1';
+const coordIP = process.argv[2];
 require('./distribution.js')({ip: coordIP, port: 7100});
 const distribution = globalThis.distribution;
 const id = distribution.util.id;
