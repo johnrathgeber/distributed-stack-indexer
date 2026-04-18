@@ -12,7 +12,7 @@ group[id.getSID(n1)] = n1;
 group[id.getSID(n2)] = n2;
 group[id.getSID(n3)] = n3;
 
-const QUERIES = ['linux kernel', 'memory management', 'file system', 'scheduler', 'network driver'];
+const QUERIES = ['linux kernel', 'memory management', 'file system', 'scheduler', 'network driver', 'gross', 'common', 'adhere', 'computer'];
 const N = 20;
 
 distribution.node.start(() => {

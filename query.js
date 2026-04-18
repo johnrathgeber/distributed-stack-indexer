@@ -39,6 +39,10 @@ distribution.node.start(() => {
       }
 
       const terms = [...lookupTerms];
+      if (terms.length == 0) {
+        console.log('No results found.');
+        process.exit(0);
+      }
       let pending = terms.length;
       const scores = {};
 
