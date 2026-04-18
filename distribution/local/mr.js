@@ -29,12 +29,6 @@
  */
 
 const util = require("../util/util.js");
-const fs = require('fs');
-
-function log(msg) {
-    const ip = globalThis.distribution?.node?.config?.ip || '?';
-    fs.appendFileSync('/tmp/mr-debug.log', `[${new Date().toISOString()}] [${ip}] ${msg}\n`);
-}
 
 let mrConfig = null;
 let mrServName = null;
@@ -68,7 +62,6 @@ function mapIt(nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
-    log(`mapIt start: ${total} keys`);
     if (total == 0) {
         callback(null, {});
         return;
@@ -80,7 +73,6 @@ function mapIt(nodeNIDs, sidToNode, callback) {
     function mapChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
         keyIdx += CHUNK;
-        log(`mapIt chunk ${keyIdx}/${total}`);
         let remaining = chunk.length;
 
         for (const key of chunk) {
@@ -88,18 +80,27 @@ function mapIt(nodeNIDs, sidToNode, callback) {
                 if (e) {
                     remaining--;
                     if (remaining == 0) {
-                        if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
-                        else { mapChunk(); }
+                        if (keyIdx >= total) {
+                            callback(null, {});
+                        } else {
+                            mapChunk();
+                        }
                     }
                     return;
                 }
                 const mapped = mrConfig.map(key, v);
                 globalThis.distribution.local.store.put(mapped, {key: key, gid: mrServName + "map"}, (e, v) => {
-                    if (e) { callback(e); return; }
+                    if (e) {
+                        callback(e);
+                        return;
+                    }
                     remaining--;
                     if (remaining == 0) {
-                        if (keyIdx >= total) { log(`mapIt done: ${total} keys`); callback(null, {}); }
-                        else { mapChunk(); }
+                        if (keyIdx >= total) {
+                            callback(null, {});
+                        } else {
+                            mapChunk();
+                        }
                     }
                 });
             });
@@ -117,16 +118,17 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = mrConfig.keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
-    log(`shuffleIt start: ${total} keys`);
     const newKeysSet = new Set();
-    if (total == 0) { callback(null, []); return; }
+    if (total == 0) {
+        callback(null, []);
+        return;
+    }
 
     const CHUNK = 500;
     let keyIdx = 0;
 
     function processChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
-        log(`shuffleIt chunk ${keyIdx}/${total}`);
         keyIdx += CHUNK;
         let remaining = chunk.length;
         const nodeBatches = {};
@@ -142,7 +144,9 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                             globalThis.distribution.util.id.getID(shuffleKey), nodeNIDs
                         );
                         const sid = nid.substring(0, 5);
-                        if (!nodeBatches[sid]) { nodeBatches[sid] = []; }
+                        if (!nodeBatches[sid]) {
+                            nodeBatches[sid] = [];
+                        }
                         nodeBatches[sid].push({key: shuffleKey, value: obj[shuffleKey]});
                     }
                 }
@@ -150,8 +154,11 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                 if (remaining === 0) {
                     const sids = Object.keys(nodeBatches);
                     if (sids.length === 0) {
-                        if (keyIdx >= total) { callback(null, [...newKeysSet]); }
-                        else { processChunk(); }
+                        if (keyIdx >= total) {
+                            callback(null, [...newKeysSet]);
+                        } else {
+                            processChunk();
+                        }
                         return;
                     }
                     let batchCntr = 0;
@@ -162,11 +169,17 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
                             [nodeBatches[sid], {gid: mrServName}],
                             remote,
                             (e) => {
-                                if (e) { log(`shuffleIt batchAppend error to ${sid}: ${e.message}`); callback(e); return; }
+                                if (e) {
+                                    callback(e);
+                                    return;
+                                }
                                 batchCntr++;
                                 if (batchCntr === sids.length) {
-                                    if (keyIdx >= total) { log(`shuffleIt done`); callback(null, [...newKeysSet]); }
-                                    else { processChunk(); }
+                                    if (keyIdx >= total) {
+                                        callback(null, [...newKeysSet]);
+                                    } else {
+                                        processChunk();
+                                    }
                                 }
                             }
                         );
@@ -187,7 +200,6 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     const myNID = globalThis.distribution.util.id.getNID(sidToNode[mySID]);
     const myKeys = keys.filter(key => globalThis.distribution.util.id.consistentHash(globalThis.distribution.util.id.getID(key), nodeNIDs) === myNID);
     const total = myKeys.length;
-    log(`reduceIt start: ${total} keys`);
     if (total == 0) {
         callback(null, []);
         return;
@@ -199,7 +211,6 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
     function reduceChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
         keyIdx += CHUNK;
-        log(`reduceIt chunk ${keyIdx}/${total}`);
         let remaining = chunk.length;
 
         for (const key of chunk) {
@@ -207,19 +218,24 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
                 if (e) {
                     remaining--;
                     if (remaining == 0) {
-                        if (keyIdx >= total) { log(`reduceIt done: ${total} keys`); callback(null, []); }
-                        else { reduceChunk(); }
+                        if (keyIdx >= total) {
+                            callback(null, []);
+                        } else {
+                            reduceChunk();
+                        }
                     }
                     return;
                 }
                 const reduced = mrConfig.reduce(key, v);
                 const term = Object.keys(reduced)[0];
                 globalThis.distribution.index.store.put(reduced[term], globalThis.distribution.util.id.getID(term), (e) => {
-                    if (e) { log(`reduceIt put err: ${e.message}`); }
                     remaining--;
                     if (remaining == 0) {
-                        if (keyIdx >= total) { log(`reduceIt done: ${total} keys`); callback(null, []); }
-                        else { reduceChunk(); }
+                        if (keyIdx >= total) {
+                            callback(null, []);
+                        } else {
+                            reduceChunk();
+                        }
                     }
                 });
             });

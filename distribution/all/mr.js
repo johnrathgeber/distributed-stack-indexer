@@ -98,7 +98,6 @@ function mr(config) {
               if (cntr === total) {
                 cntr = 0;
                 let newKeys = [];
-                // Serialize shuffle calls to avoid concurrent writes to the same key
                 const shuffleNodes = Object.keys(v);
                 function doReduce() {
                   cntr = 0;
@@ -107,7 +106,10 @@ function mr(config) {
                   for (const nodeSID in v) {
                     const remote = {node: v[nodeSID], service: 'mr', method: 'reduceIt'};
                     globalThis.distribution.local.comm.send([newKeys, nodeNIDs, v], remote, (e, v2) => {
-                      if (e) { cb(e); return; }
+                      if (e) {
+                        cb(e);
+                        return;
+                      }
                       toRtn = toRtn.concat(v2 || []);
                       cntr++;
                       if (cntr === total) {
@@ -116,9 +118,14 @@ function mr(config) {
                         for (const serv of servicesCreated) {
                           const remote = {node: coordNode, service: 'routes', method: 'rem'};
                           globalThis.distribution.local.comm.send([serv], remote, (e, v2) => {
-                            if (e) { cb(e); return; }
+                            if (e) {
+                              cb(e);
+                              return;
+                            }
                             cntr2++;
-                            if (cntr2 === total2) cb(null, toRtn);
+                            if (cntr2 === total2) {
+                              cb(null, toRtn);
+                            }
                           });
                         }
                       }
@@ -126,11 +133,17 @@ function mr(config) {
                   }
                 }
                 function shuffleNext(idx) {
-                  if (idx >= shuffleNodes.length) { doReduce(); return; }
+                  if (idx >= shuffleNodes.length) {
+                    doReduce();
+                    return;
+                  }
                   const nSID = shuffleNodes[idx];
                   const remote = {node: v[nSID], service: 'mr', method: 'shuffleIt'};
                   globalThis.distribution.local.comm.send([nodeNIDs, v], remote, (e, v2) => {
-                    if (e) { cb(e); return; }
+                    if (e) {
+                      cb(e);
+                      return;
+                    }
                     newKeys = newKeys.concat(v2);
                     shuffleNext(idx + 1);
                   });
