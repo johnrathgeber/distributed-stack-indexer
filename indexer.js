@@ -12,17 +12,17 @@ group[id.getSID(n1)] = n1;
 group[id.getSID(n2)] = n2;
 group[id.getSID(n3)] = n3;
 
-function health(node) {
-  distribution.local.comm.send([], {node, service: 'status', method: 'get'}, (e, v) => {
-    if (e) {
-      console.log(`node ${node.ip} might be down?? e: ${e.message}`);
-      return;
-    }
-    const heapUsed = v.heapUsed || 0;
-    const heapTotal = v.heapTotal || 1;
-    console.log(`heap used: ${heapUsed}, heapTotal: ${heapTotal}`);
-  });
-}
+// function health(node) {
+//   distribution.local.comm.send([], {node, service: 'status', method: 'get'}, (e, v) => {
+//     if (e) {
+//       console.log(`node ${node.ip} might be down?? e: ${e.message}`);
+//       return;
+//     }
+//     const heapUsed = v.heapUsed || 0;
+//     const heapTotal = v.heapTotal || 1;
+//     console.log(`heap used: ${heapUsed}, heapTotal: ${heapTotal}`);
+//   });
+// }
 
 const mapper = (key, value) => {
   const {execSync} = require('child_process');
