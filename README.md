@@ -305,6 +305,9 @@ I did not implement any extra credit features this time -- however, I did end up
 
 ## Summarize the process of preparing the poster, including any surprises you encountered.
 
+We primarily used John's implementation as the base of M6 since it was the most robust across M1-m5, and iterated on it through M6 rather than rebuilding from scratch. We split the three components across teammates: one on the crawler, one on the indexer, one on the query and benchmark. 
+
+The biggest surprise was teh gap between crawling and indexing 100k LKML pages on 3 nodes: crawling took about 4 minutes, indexing closer to 8 hours. We expected indexing to be heavier (per-doc tokenize, Porter stem, 1/2/3-gram, TF), but not a ~120x gap. In hindsight it made sense: crawling is network-bound, so waiting on HTTPS responses gave us parallelism for free, while the indexer shells out via execSync per document and is bounded by a synchronous shell pipeline. Consistent hashing also split the corpus unevenly (~61k, 25k, 10k docs across nodes), so the slowest node dominated end-to-end time. The takeaway for us was that horizontal scaling only pays off when work is CPU-bound and partitioning is balanced: a 3-node cluster with a 6x load skew behaves closer to 1.6 nodes on its lowest stage.  
 
 ## Roughly, how many hours did M6 take you to complete?
 
@@ -325,3 +328,5 @@ LoC: 500
 
 
 ## How different are these numbers for different members in the team and why?
+
+We created four main components for M6: crawler.js (~170 LoC), indexer.js (~120 LoC), query.js (~70 LoC), and becnhmark.js (~50 LoC). The split is a bit ambiguous because we did a lot of pair programming, but generally one perosn in our group drove each part. The LoC differences reflect how much each file has to do, not how much effort went in: the crawler handles HTTPS fetches, timeouts, redirects, HTML parsing, link extraction, and the frontier loop, while benchmark.js is a tight loop around distribution.index.store.get. The indexer sits in between because it leans on the MapReduce primitive from M5 and reuses the M0 stem/process pipeline via execSync, so it does a lot with fewer lines.
