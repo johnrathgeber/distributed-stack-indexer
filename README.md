@@ -303,25 +303,25 @@ I did not implement any extra credit features this time -- however, I did end up
 
 # M6: Final Project
 
-## Summarize the process of writing the paper and preparing the poster, including any surprises you encountered.
+## Summarize the process of preparing the poster, including any surprises you encountered.
 
 
 ## Roughly, how many hours did M6 take you to complete?
 
 
-Hours: <time>
+Hours: 22
 
 
 ## How many LoC did the distributed version of the project end up taking?
 
 
-DLoC: <final number>
+DLoC: 3700
 
 
 ## How does this number compare with your non-distributed version?
 
 
-LoC: <original prediction from M0>
+LoC: 500
 
 
 ## How different are these numbers for different members in the team and why?
