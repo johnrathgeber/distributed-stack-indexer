@@ -12,6 +12,18 @@ group[id.getSID(n1)] = n1;
 group[id.getSID(n2)] = n2;
 group[id.getSID(n3)] = n3;
 
+function health(node) {
+  distribution.local.comm.send([], {node, service: 'status', method: 'get'}, (e, v) => {
+    if (e) {
+      console.log(`node ${node.ip} might be down?? e: ${e.message}`);
+      return;
+    }
+    const heapUsed = v.heapUsed || 0;
+    const heapTotal = v.heapTotal || 1;
+    console.log(`heap used: ${heapUsed}, heapTotal: ${heapTotal}`);
+  });
+}
+
 const mapper = (key, value) => {
   const {execSync} = require('child_process');
   const fs = require('fs');
@@ -41,11 +53,9 @@ const mapper = (key, value) => {
       fs.unlinkSync(tmpFile);
     } catch (e) {}
   }
-
   if (terms.length == 0) {
     return [];
   }
-
   const ngrams = [];
   for (let i = 0; i < terms.length; i++) {
     ngrams.push(terms[i]);
@@ -56,11 +66,15 @@ const mapper = (key, value) => {
       ngrams.push(terms[i] + ' ' + terms[i + 1] + ' ' + terms[i + 2]);
     }
   }
-
   const total = ngrams.length;
   const counts = {};
   for (const ng of ngrams) {
-    counts[ng] = (counts[ng] || 0) + 1;
+    if (!counts[ng]) {
+      counts[ng] = 1;
+    }
+    else {
+      counts[ng] += 1;
+    }
   }
 
   return Object.entries(counts).map(([term, count]) => ({[term]: {[url]: count / total}}));
@@ -70,7 +84,12 @@ const reducer = (key, values) => {
   const urls = {};
   for (const v of values) {
     for (const [url, tf] of Object.entries(v)) {
-      urls[url] = (urls[url] || 0) + tf;
+      if (!urls[url]) {
+        urls[url] = tf;
+      }
+      else {
+        ursl[url] += tf
+      }
     }
   }
   return {[key]: urls};
@@ -92,7 +111,7 @@ distribution.node.start(() => {
                 console.error('mr.exec error:', e);
                 process.exit(1);
               }
-              console.log(`MapReduce complete. Index stored directly by workers.`);
+              console.log(`MapReduce complete!!!`);
               process.exit(0);
             });
           });

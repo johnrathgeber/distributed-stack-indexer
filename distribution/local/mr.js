@@ -66,10 +66,8 @@ function mapIt(nodeNIDs, sidToNode, callback) {
         callback(null, {});
         return;
     }
-
     const CHUNK = 100;
     let keyIdx = 0;
-
     function mapChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
         keyIdx += CHUNK;
@@ -106,7 +104,6 @@ function mapIt(nodeNIDs, sidToNode, callback) {
             });
         }
     }
-
     mapChunk();
 };
 
@@ -123,10 +120,8 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
         callback(null, []);
         return;
     }
-
     const CHUNK = 500;
     let keyIdx = 0;
-
     function processChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
         keyIdx += CHUNK;
@@ -188,7 +183,6 @@ function shuffleIt(nodeNIDs, sidToNode, callback) {
             });
         }
     }
-
     processChunk();
 };
 
@@ -204,10 +198,8 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
         callback(null, []);
         return;
     }
-
     const CHUNK = 100;
     let keyIdx = 0;
-
     function reduceChunk() {
         const chunk = myKeys.slice(keyIdx, keyIdx + CHUNK);
         keyIdx += CHUNK;
@@ -241,7 +233,6 @@ function reduceIt(keys, nodeNIDs, sidToNode, callback) {
             });
         }
     }
-
     reduceChunk();
 };
 

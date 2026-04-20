@@ -177,11 +177,14 @@ function append(state, configuration, callback) {
  * @param {Callback} callback
  */
 function batchAppend(items, configuration, callback) {
-  if (!items || items.length === 0) return callback(null, {});
-  // Group by key so same-key values are written atomically in one pass
+  if (!items || items.length === 0) {
+    return callback(null, {});
+  }
   const byKey = new Map();
   for (const {key, value} of items) {
-    if (!byKey.has(key)) byKey.set(key, []);
+    if (!byKey.has(key)) {
+      byKey.set(key, []);
+    }
     byKey.get(key).push(value);
   }
   const keys = [...byKey.keys()];
@@ -192,15 +195,22 @@ function batchAppend(items, configuration, callback) {
     get({key, gid: configuration.gid}, (e, existing) => {
       if (failed) return;
       const arr = e ? [] : (Array.isArray(existing) ? existing : [existing]);
-      for (const v of values) arr.push(v);
+      for (const v of values) {
+        arr.push(v);
+      }
       const alphanumeric = key.replace(/[^a-zA-Z0-9]/g, '');
       const dirPath = path.resolve('store', configuration.gid);
       const filePath = path.resolve(dirPath, alphanumeric);
       fs.mkdirSync(dirPath, {recursive: true});
-      fs.writeFile(filePath, util.serialize(arr), (err) => {
-        if (err) { failed = true; return callback(new Error(err.message)); }
+      fs.writeFile(filePath, util.serialize(arr), (e) => {
+        if (e) {
+          failed = true;
+          return callback(new Error(e.message));
+        }
         remaining--;
-        if (remaining === 0) callback(null, {});
+        if (remaining == 0) {
+          callback(null, {});
+        }
       });
     });
   }

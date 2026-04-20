@@ -25,10 +25,8 @@ function crawlIt(callback) {
     if (!keys || keys.length == 0) {
       return callback(null, []);
     }
-
     let kpending = keys.length;
     const pairs = [];
-
     for (const key of keys) {
       globalThis.distribution.local.store.get({key, gid: 'frontier'}, (e2, url) => {
         if (!e2 && url) {
@@ -39,10 +37,8 @@ function crawlIt(callback) {
           if (pairs.length == 0) {
             return callback(null, []);
           }
-
           let pending = pairs.length;
           const links = [];
-
           const done = () => {
             pending--;
             if (pending == 0) {
@@ -68,7 +64,9 @@ function crawlIt(callback) {
                     return;
                   }
                   let html = '';
-                  res.on('data', d => { html += d; });
+                  res.on('data', d => {
+                    html += d;
+                  });
                   res.on('end', () => {
                     const text = html
                       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -82,12 +80,10 @@ function crawlIt(callback) {
                     const re = /href="([^"]+)"/g;
                     let m;
                     while ((m = re.exec(html)) !== null) {
-                      try {
-                        const abs = new URL(m[1], u).href;
-                        if (abs.startsWith(DOMAIN)) {
-                          links.push(abs);
-                        }
-                      } catch (e) {}
+                      const abs = new URL(m[1], u).href;
+                      if (abs.startsWith(DOMAIN)) {
+                        links.push(abs);
+                      }
                     }
                     done();
                   });
@@ -144,12 +140,9 @@ function runRound(cb) {
 }
 
 function loop() {
-  console.log(`visited=${visited.size}`);
   if (visited.size >= TARGET) {
-    console.log('Done crawling.');
     process.exit(0);
   }
-
   runRound(links => {
     const newUrls = [...new Set(links)].filter(u => !visited.has(u));
     newUrls.forEach(u => visited.add(u));
@@ -165,8 +158,7 @@ distribution.node.start(() => {
           let n = 3;
           for (const node of [n1, n2, n3]) {
             distribution.local.comm.send([{crawlIt}, 'crawler'],
-              {node, service: 'routes', method: 'put'},
-              () => {
+              {node, service: 'routes', method: 'put'}, () => {
                 if (--n == 0) {
                   visited.add(SEED);
                   putUrls([SEED], loop);
