@@ -14,7 +14,7 @@ let baseURL = process.argv[2];
 
 if (baseURL.endsWith('index.html')) {
   baseURL = baseURL.slice(0, baseURL.length - 'index.html'.length);
-} else {
+} else if (!baseURL.endsWith('/')) {
   baseURL += '/';
 }
 

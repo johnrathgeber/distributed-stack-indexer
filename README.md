@@ -296,8 +296,32 @@ My implementation comprises `2` new software components, totaling `520` added li
 
 *Performance*: My TF-IDF workflow can sustain 107.7862 execs/second, with an average latency of 0.0093 seconds per exec.
 
-
 ## Key Feature
 
 > Which extra features did you implement and how?
 I did not implement any extra credit features this time -- however, I did end up having to implement handling a null input with store.get, as well as store.append.
+
+# M6: Final Project
+
+## Summarize the process of preparing the poster, including any surprises you encountered.
+
+
+## Roughly, how many hours did M6 take you to complete?
+
+
+Hours: 22
+
+
+## How many LoC did the distributed version of the project end up taking?
+
+
+DLoC: 3700
+
+
+## How does this number compare with your non-distributed version?
+
+
+LoC: 500
+
+
+## How different are these numbers for different members in the team and why?
