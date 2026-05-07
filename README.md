@@ -1,332 +1,38 @@
-# distribution
+# Distributed Search Engine — LKML
 
-This is the distribution library. 
+[![Project Poster](https://www.johnrathgeber.com/Distributed_Poster_png.png)](https://www.johnrathgeber.com/Distributed_Poster.pdf)
 
-## Environment Setup
+A distributed search engine built from scratch in JavaScript, deployed on AWS EC2. It crawls, indexes, and queries the Linux Kernel Mailing List (lore.kernel.org/lkml), returning ranked results for keyword searches.
 
-We recommend using the prepared [container image](https://github.com/brown-cs1380/container).
+## What it does
 
-## Installation
+- Crawls 100K+ LKML pages across 3 distributed worker nodes
+- Indexes documents using a custom MapReduce pipeline with TF-based ranking and 1/2/3-gram support
+- Answers keyword queries in ~2ms with ~500 queries/sec throughput
 
-After you have setup your environment, you can start using the distribution library.
-When loaded, distribution introduces functionality supporting the distributed execution of programs. To download it:
+## How it works
 
-```sh
-$ npm i '@brown-ds/distribution'
-```
+Three AWS EC2 nodes act as workers, with a coordinator node orchestrating everything.
 
-This command downloads and installs the distribution library.
+**Crawling** — workers fan out from a seed URL, fetch pages, extract links, and store documents in a distributed key-value store sharded by URL hash. The coordinator deduplicates visited URLs.
 
-## Testing
+**Indexing** — a MapReduce job runs over the corpus. Each document gets tokenized, stemmed, and broken into n-grams via a shell pipeline. Map outputs per-document TF scores, shuffle routes terms to their owning nodes, and reduce writes the final inverted index directly to distributed storage.
 
-There are several categories of tests:
-  *	Regular Tests (`*.test.js`)
-  *	Scenario Tests (`*.scenario.js`)
-  *	Extra Credit Tests (`*.extra.test.js`)
-  * Student Tests (`*.student.test.js`) - inside `test/test-student`
+**Querying** — the query is stemmed the same way, n-grams are looked up in parallel across nodes, scores are summed, and the top 10 results are returned.
 
-### Running Tests
+## Scale
 
-By default, all regular tests are run. Use the options below to run different sets of tests:
+| Metric | Value |
+|--------|-------|
+| Documents indexed | 96,388 |
+| Unique index terms | ~759,000 |
+| Total index size | ~3.1 GB |
+| Crawl time | ~4 minutes |
+| Index time | ~8 hours |
+| Query latency | ~1.96 ms |
+| Query throughput | ~506 queries/sec |
 
-1. Run all regular tests (default): `$ npm test` or `$ npm test -- -t`
-2. Run scenario tests: `$ npm test -- -c` 
-3. Run extra credit tests: `$ npm test -- -ec`
-4. Run the `non-distribution` tests: `$ npm test -- -nd`
-5. Combine options: `$ npm test -- -c -ec -nd -t`
+## Stack
 
-## Usage
+JavaScript (Node.js), Bash, AWS EC2
 
-To try out the distribution library inside an interactive Node.js session, run:
-
-```sh
-$ node
-```
-
-Then, load the distribution library:
-
-```js
-> let distribution = require("@brown-ds/distribution")();
-> distribution.node.start(console.log);
-```
-
-Now you have access to the full distribution library. You can start off by serializing some values. 
-
-```js
-> s = distribution.util.serialize(1); // '{"type":"number","value":"1"}'
-> n = distribution.util.deserialize(s); // 1
-```
-
-You can inspect information about the current node (for example its `sid`) by running:
-
-```js
-> distribution.local.status.get('sid', console.log); // null 8cf1b (null here is the error value; meaning there is no error)
-```
-
-You can also store and retrieve values from the local memory:
-
-```js
-> distribution.local.mem.put({name: 'nikos'}, 'key', console.log); // null {name: 'nikos'} (again, null is the error value) 
-> distribution.local.mem.get('key', console.log); // null {name: 'nikos'}
-
-> distribution.local.mem.get('wrong-key', console.log); // Error('Key not found') undefined
-```
-
-You can also spawn a new node:
-
-```js
-> node = { ip: '127.0.0.1', port: 8080 };
-> distribution.local.status.spawn(node, console.log);
-```
-
-Using the `distribution.all` set of services will allow you to act 
-on the full set of nodes created as if they were a single one.
-
-```js
-> distribution.all.status.get('sid', console.log); // {} { '8cf1b': '8cf1b', '8cf1c': '8cf1c' } (now, errors are per-node and form an object)
-```
-
-You can also send messages to other nodes:
-
-```js
-> distribution.local.comm.send(['sid'], {node: node, service: 'status', method: 'get'}, console.log); // null 8cf1c
-```
-
-Most methods in the distribution library are asynchronous and take a callback as their last argument.
-This callback is called when the method completes, with the first argument being an error (if any) and the second argument being the result.
-If you wanted to run this same sequence of commands in a script, you could do something like this (note the nested callbacks):
-
-```js
-let distribution = require("@brown-ds/distribution")();
-// Now we're only doing a few of the things we did above
-const out = (cb) => {
-  distribution.local.status.stop(cb); // Shut down the local node
-};
-distribution.node.start(() => {
-  // This will run only after the node has started
-  const node = {ip: '127.0.0.1', port: 8765};
-  distribution.local.status.spawn(node, (e, v) => {
-    if (e) {
-      return out(console.log);
-    }
-    // This will run only after the new node has been spawned
-    distribution.all.status.get('sid', (e, v) => {
-      // This will run only after we communicated with all nodes and got their sids
-      console.log(v); // { '8cf1b': '8cf1b', '8cf1c': '8cf1c' }
-      // Shut down the remote node
-      distribution.local.comm.send([], {service: 'status', method: 'stop', node: node}, () => {
-        // Finally, stop the local node
-        out(console.log); // null, {ip: '127.0.0.1', port: 1380}
-      });
-    });
-  });
-});
-```
-
-# Results and Reflections
-
-# M0: Setup & Centralized Computing
-
-> Add your contact information below and in `package.json`.
-
-* name: `John Rathgeber`
-
-* email: `john_rathgeber@brown.edu`
-
-* cslogin: `jrathgeb`
-
-
-## Summary
-
-> Summarize your implementation, including the most challenging aspects; remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete M0 (`hours`), the total number of JavaScript lines you added, including tests (`jsloc`), the total number of shell lines you added, including for deployment and testing (`sloc`).
-
-
-My implementation consists of `6` components addressing T1--8. The most challenging aspect was `process.sh` because `I had to learn how to write .sh files, and had to research the functionality of each suggested command`.
-
-
-## Correctness & Performance Characterization
-
-
-> Describe how you characterized the correctness and performance of your implementation.
-
-
-To characterize correctness, we developed `8 tests` that test the following cases: special 
-characters are handled, one term with multiple links are handled, filtering out stopwords is handled, spaces between words in a term are not considered one term, etc..
-
-
-*Performance*: The throughput of various subsystems is described in the `"throughput"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
-
-
-## Wild Guess
-
-> How many lines of code do you think it will take to build the fully distributed, scalable version of your search engine? Add that number to the `"dloc"` portion of package.json, and justify your answer below.
-
-I think it will take around 5000 lines of code. My reasoning:
-- This milestone took around 500 lines of code
-- There are 6 total milestones
-- The following milestones will likely involve more lines of code than this one
-So on average, maybe I can say that the total amount of lines will be 10x the amount of lines
-of code in this milestone.
-
-
-# M1: Serialization / Deserialization
-
-## Summary
-
-> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M1 (`hours`) and the lines of code per task.
-
-
-My implementation comprises `3` software components, totaling `400` lines of code (including tests and scenarios). Key challenges included `ensuring each recursive layer is only stringified once, all types are correctly handled by both the serializer and deserializer, and figuring out how to destructure and label recursive types. For the first challenge, I solved this by abstracting out the recursive part of my serializer, and only called JSON.stringify() once on the final result. For the second challenge, I had to research each type online and figure out what to store for each type (e.g. Errors have name, message, and cause). For the final challenge, I extensively used the reference implementation to gain inspiration on how they serialized recursive types, and drew my own implementation from that`.
-
-
-## Correctness & Performance Characterization
-
-
-> Describe how you characterized the correctness and performance of your implementation
-
-
-*Correctness*: I wrote `8` tests; these tests take `0.648s` to execute. This includes objects with `nested structures, abstract types such as functions, and additional metadata required to reconstruct (e.g. Errors)`.
-
-
-*Performance*: The latency of various subsystems is described in the `"latency"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
-
-# M2: Actors and Remote Procedure Calls (RPC)
-
-## Summary
-
-> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M2 (`hours`) and the lines of code per task.
-
-
-My implementation comprises `3` software components, totaling `490` lines of code. Key challenges included `learning how the http package works, learning exactly what I needed to return for each function, and figuring out how to do counts. For the first problem (http), I had to do a lot of research online about the http server class, and how it is used to send/receive messages. For the second problem (specification), I solved this by analyzing the tests to see what was expected of me for each function. For the third problem (counts), I figured out that we can track counts by having a stored parameter in the distribution.node object, and from there, it was easy to increment as necessary`.
-
-
-## Correctness & Performance Characterization
-
-> Describe how you characterized the correctness and performance of your implementation
-
-
-*Correctness*: I wrote `9` tests (including performance tests); these tests take `4s` on average to execute.
-
-
-*Performance*: I characterized the performance of comm and RPC by sending 1000 service requests in a tight loop. Average throughput and latency is recorded in `package.json`.
-
-
-## Key Feature
-
-> How would you explain the implementation of `createRPC` to someone who has no background in computer science — i.e., with the minimum jargon possible?
-
-Let's think of nodes as people. `createRPC` allows one person to send instructions to another person, so that other person can ask the original person something specific to the original person and get the correct information back. Let's say I am a node and you are a node. Let's say we want to create an RPC so that you can ask me for the color of my shirt at any time. To do this, I first have to send you instructions on how to ask me (let's say it's some secret code). This is called the stub. Now, when you say the secret code (use the stub), I will respond back to you what color shirt I am wearing, and you can use that data however you please. 
-
-# M3: Node Groups & Gossip Protocols
-
-
-## Summary
-
-> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M3 (`hours`) and the lines of code per task.
-
-
-My implementation comprises `7` new software components, totaling `580` added lines of code over the previous implementation. Key challenges included `understanding how groups and group views work, figuring out the difference between distributed and local services/methods, and aggregation. For the first challenge, I had to watch the gearup a second time to fully understand the schema while working through the scenarios. Doing that while writing my own tests at the same time really helped me understand what was really going on. For the second challenge, as soon as I figured out how to implement all.comm.send (which took a lot of trial and error), I was able to figure out how the other distributed services worked, because they were very similar to all.comm.send. For the third challlenge, I initially thought we should aggregate both heapUsed and heapTotal, but after painstakingly debugging the tests on Gradescope (locally my tests passed but not on Gradescope), I realized that we should only aggregate heapTotal, as heapUsed is calculated on a node-by-node basis`.
-
-
-## Correctness & Performance Characterization
-
-> Describe how you characterized the correctness and performance of your implementation
-
-
-*Correctness* -- number of tests and time they take. I wrote 7 tests total, and they take roughly 25 seconds to run locally (due to the performance tests).
-
-
-*Performance* -- spawn times (all students) and gossip (lab/ec-only). I wrote tests to measure the throughput and latency of spawn(). These tests spawn 100 different nodes each to accurately measure the average latency and throughput.
-
-
-## Key Feature
-
-> What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
-
-`If we made one node send the message to all nodes right away, we would have a super heavy load of network traffic all at once. By using the gossip protocol, we distribute this load across a (short) period of time, while still allowing the message to reach all other nodes reliably.`
-
-# M4: Distributed Storage
-
-
-## Summary
-
-> Summarize your implementation, including key challenges you encountered
-
-`My implementation comprises 3 new software components (mem, store, and hashing), totaling 700 added lines of code over the previous implementation. Key challenges included constructing the distributed student tests, implementing consistent hashing, and resolving file issues for store. For the first problem, I ran into issues with the beforeAll() and afterAll() functions for some reason (which I copied from the given distributed store tests), so I had to modify them to accommodate only two nodes running and avoid exiting the program early. For the second problem, I was running into trouble with the sorting of the bigint list, and I researched how to sort it and I found out that it sorts lexicographically, so I found a workaround to that. For the third problem, I kept getting 'file not found' errors with the distributed store, and it took me a while to figure out that the problem was actually with the hashing functions, and not my implementation of store.`
-
-
-Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M4 (`hours`) and the lines of code per task.
-
-
-## Correctness & Performance Characterization
-
-> Describe how you characterized the correctness and performance of your implementation
-
-
-*Correctness* -- number of tests and time they take. I wrote 5 tests, and they take roughly 0.8s to run (not including the performance tests).
-
-
-*Performance* -- insertion and retrieval. I wrote one performance test, which takes about 3s to run. It measures the throughput and latency, while sending 1000 gets and puts.
-
-
-## Key Feature
-
-> Why is the `reconf` method designed to first identify all the keys to be relocated and then relocate individual objects instead of fetching all the objects immediately and then pushing them to their corresponding locations?
-
-Doing everything all at once would cause a very heavy load on the system, because if the store is very large, then the system has to handle a massive batch request all at once, which could overload it. Instead, by doing a streaming approach, the system takes an amount which it can handle and continously relocates keys, ensuring that it completes its job without error and still in a timely manner.
-
-# M5: Distributed Execution Engine
-
-
-## Summary
-
-> Summarize your implementation, including key challenges you encountered. Remember to update the `report` section of the `package.json` file with the total number of hours it took you to complete each task of M5 (`hours`) and the lines of code per task.
-
-
-My implementation comprises `2` new software components, totaling `520` added lines of code over the previous implementation (including tests and filled in scenarios). Key challenges included `figuring out how to communicate between worker nodes and the orchestrator, using the store route with hashing to store data on the correct nodes, and finding which folder names to use when storing things in the store. For the first challenge, I had a lot of trouble at first figuring out how to maintain state with the notify() function, but then I realized that we only have to call notify once for each node, and from there the orchestrator can schedule further calls. For the second challenge, at first I didn't hash in mapIt and shuffleIt, so each worker node had access to all the key-value pairs in the store, so in some scenarios I was getting triple the output I needed -- then I looked into it more closely and realized that each node should be responsible only for its store, not others. For the third challenge, I was having some trouble with overlapping keys -- keys returned from map (stored in the store) would match the original keys also stored in the store. As a result, weird race conditions would happen in map when two nodes are writing/reading from a file at the same time. To fix this, I made all folder names unique so that the data would be kept separate for each node -- no overlap`.
-
-
-## Correctness & Performance Characterization
-
-> Describe how you characterized the correctness and performance of your implementation
-
-
-*Correctness*: I wrote 5 cases testing aggregation of the same keys returned by map, a variety of value types (string, number, array, etc.), and a variety of reducing functions (also dependent on value type).
-
-
-*Performance*: My TF-IDF workflow can sustain 107.7862 execs/second, with an average latency of 0.0093 seconds per exec.
-
-## Key Feature
-
-> Which extra features did you implement and how?
-I did not implement any extra credit features this time -- however, I did end up having to implement handling a null input with store.get, as well as store.append.
-
-# M6: Final Project
-
-## Summarize the process of preparing the poster, including any surprises you encountered.
-
-We primarily used John's implementation as the base of M6 since it was the most robust across M1-m5, and iterated on it through M6 rather than rebuilding from scratch. We split the three components across teammates: one on the crawler, one on the indexer, one on the query and benchmark. 
-
-The biggest surprise was teh gap between crawling and indexing 100k LKML pages on 3 nodes: crawling took about 4 minutes, indexing closer to 8 hours. We expected indexing to be heavier (per-doc tokenize, Porter stem, 1/2/3-gram, TF), but not a ~120x gap. In hindsight it made sense: crawling is network-bound, so waiting on HTTPS responses gave us parallelism for free, while the indexer shells out via execSync per document and is bounded by a synchronous shell pipeline. Consistent hashing also split the corpus unevenly (~61k, 25k, 10k docs across nodes), so the slowest node dominated end-to-end time. The takeaway for us was that horizontal scaling only pays off when work is CPU-bound and partitioning is balanced: a 3-node cluster with a 6x load skew behaves closer to 1.6 nodes on its lowest stage.  
-
-## Roughly, how many hours did M6 take you to complete?
-
-
-Hours: 22
-
-
-## How many LoC did the distributed version of the project end up taking?
-
-
-DLoC: 3700
-
-
-## How does this number compare with your non-distributed version?
-
-
-LoC: 500
-
-
-## How different are these numbers for different members in the team and why?
-
-We created four main components for M6: crawler.js (~170 LoC), indexer.js (~120 LoC), query.js (~70 LoC), and becnhmark.js (~50 LoC). The split is a bit ambiguous because we did a lot of pair programming, but generally one perosn in our group drove each part. The LoC differences reflect how much each file has to do, not how much effort went in: the crawler handles HTTPS fetches, timeouts, redirects, HTML parsing, link extraction, and the frontier loop, while benchmark.js is a tight loop around distribution.index.store.get. The indexer sits in between because it leans on the MapReduce primitive from M5 and reuses the M0 stem/process pipeline via execSync, so it does a lot with fewer lines.
